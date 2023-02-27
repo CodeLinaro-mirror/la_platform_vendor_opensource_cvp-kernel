@@ -8,13 +8,12 @@
 #include <linux/dma-direction.h>
 #include <linux/iommu.h>
 #include <linux/msm_dma_iommu_mapping.h>
-#include <linux/ion.h>
-#include <linux/msm_ion.h>
 #include <soc/qcom/secure_buffer.h>
 #include <linux/mem-buf.h>
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/qcom-dma-mapping.h>
+#include <linux/version.h>
 #include "msm_cvp_core.h"
 #include "msm_cvp_debug.h"
 #include "msm_cvp_resources.h"
@@ -389,7 +388,7 @@ int msm_cvp_smem_alloc(size_t size, u32 align, int map_kernel,
 			__func__, (u32)size);
 		return -EINVAL;
 	}
-
+dprintk(CVP_ERR, " %s with size :%x \n",__func__, (u32)size);
 	rc = alloc_dma_mem(size, align, map_kernel,
 		(struct msm_cvp_platform_resources *)res, smem);
 

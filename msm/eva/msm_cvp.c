@@ -15,7 +15,7 @@ struct cvp_power_level {
 };
 
 static int msm_cvp_get_session_info(struct msm_cvp_inst *inst,
-		struct eva_kmd_session_info *session)
+		struct cvp_kmd_session_info *session)
 {
 	int rc = 0;
 	struct msm_cvp_inst *s;
@@ -84,7 +84,7 @@ static bool cvp_msg_pending(struct cvp_session_queue *sq,
 static int cvp_wait_process_message(struct msm_cvp_inst *inst,
 				struct cvp_session_queue *sq, u64 *ktid,
 				unsigned long timeout,
-				struct eva_kmd_hfi_packet *out)
+				struct cvp_kmd_hfi_packet *out)
 {
 	struct cvp_session_msg *msg = NULL;
 	struct cvp_hfi_msg_session_hdr *hdr;
@@ -126,7 +126,7 @@ exit:
 }
 
 static int msm_cvp_session_receive_hfi(struct msm_cvp_inst *inst,
-			struct eva_kmd_hfi_packet *out_pkt)
+			struct cvp_kmd_hfi_packet *out_pkt)
 {
 	unsigned long wait_time;
 	struct cvp_session_queue *sq;
@@ -155,7 +155,7 @@ static int msm_cvp_session_receive_hfi(struct msm_cvp_inst *inst,
 
 static int msm_cvp_session_process_hfi(
 	struct msm_cvp_inst *inst,
-	struct eva_kmd_hfi_packet *in_pkt,
+	struct cvp_kmd_hfi_packet *in_pkt,
 	unsigned int in_offset,
 	unsigned int in_buf_num)
 {
@@ -250,7 +250,7 @@ exit:
 	cvp_put_inst(inst);
 	return rc;
 }
-
+#ifdef CVP_SYNX_ENABLED
 static bool cvp_fence_wait(struct cvp_fence_queue *q,
 			struct cvp_fence_command **fence,
 			enum queue_state *state)
@@ -472,7 +472,7 @@ static int cvp_fence_proc(struct msm_cvp_inst *inst,
 	}
 
 	rc = call_hfi_op(hdev, session_send, (void *)inst->session,
-			(struct eva_kmd_hfi_packet *)pkt);
+			(struct cvp_kmd_hfi_packet *)pkt);
 	if (rc) {
 		dprintk(CVP_ERR, "%s %s: Failed in call_hfi_op %d, %x\n",
 			current->comm, __func__, pkt->size, pkt->packet_type);
@@ -482,7 +482,7 @@ static int cvp_fence_proc(struct msm_cvp_inst *inst,
 
 	timeout = msecs_to_jiffies(CVP_MAX_WAIT_TIME);
 	rc = cvp_wait_process_message(inst, sq, &ktid, timeout,
-				(struct eva_kmd_hfi_packet *)&hdr);
+				(struct cvp_kmd_hfi_packet *)&hdr);
 	/* Only FD support dcvs at certain FW */
 	if (!msm_cvp_dcvs_disable &&(hdr.size == sizeof(struct cvp_hfi_msg_session_hdr_ext)
 			+ sizeof(struct cvp_hfi_buf_type))) {
@@ -624,13 +624,13 @@ exit:
 }
 
 static int msm_cvp_session_process_hfi_fence(struct msm_cvp_inst *inst,
-					struct eva_kmd_arg *arg)
+					struct cvp_kmd_arg *arg)
 {
-	int rc = 0;
+	int i, rc = 0;
 	int idx;
-	struct eva_kmd_hfi_fence_packet *fence_pkt;
-	struct eva_kmd_hfi_synx_packet *synx_pkt;
-	struct eva_kmd_fence_ctrl *kfc;
+	struct cvp_kmd_hfi_fence_packet *fence_pkt;
+	struct cvp_kmd_hfi_synx_packet *synx_pkt;
+	struct cvp_kmd_fence_ctrl *kfc;
 	struct cvp_hfi_cmd_session_hdr *pkt;
 	unsigned int offset, buf_num, in_offset, in_buf_num;
 	struct msm_cvp_inst *s;
@@ -685,7 +685,7 @@ static int msm_cvp_session_process_hfi_fence(struct msm_cvp_inst *inst,
 		dprintk(CVP_ERR, "Incorrect buf num and offset in cmd\n");
 		goto exit;
 	}
-	rc = msm_cvp_map_frame(inst, (struct eva_kmd_hfi_packet *)pkt, offset,
+	rc = msm_cvp_map_frame(inst, (struct cvp_kmd_hfi_packet *)pkt, offset,
 				buf_num);
 	if (rc)
 		goto exit;
@@ -698,6 +698,9 @@ static int msm_cvp_session_process_hfi_fence(struct msm_cvp_inst *inst,
 	f->mode = OP_NORMAL;
 
 	synx_pkt = &arg->data.hfi_synx_pkt;
+	for(i =0; i< 22 ; i++){
+	dprintk(CVP_ERR, "synx_pkt fence_data[%d]:%x \n ",i, synx_pkt->fence_data[i]);
+}
 	if (synx_pkt->fence_data[0] != 0xFEEDFACE) {
 		dprintk(CVP_ERR, "%s deprecated synx path\n", __func__);
 		cvp_free_fence_data(f);
@@ -736,7 +739,7 @@ exit:
 	cvp_put_inst(s);
 	return rc;
 }
-
+#endif
 static inline int div_by_1dot5(unsigned int a)
 {
 	unsigned long i = a << 1;
@@ -1008,7 +1011,7 @@ static int msm_cvp_update_power(struct msm_cvp_inst *inst)
 }
 
 static int msm_cvp_register_buffer(struct msm_cvp_inst *inst,
-		struct eva_kmd_buffer *buf)
+		struct cvp_kmd_buffer *buf)
 {
 	struct cvp_hfi_device *hdev;
 	struct cvp_hal_session *session;
@@ -1045,7 +1048,7 @@ exit:
 }
 
 static int msm_cvp_unregister_buffer(struct msm_cvp_inst *inst,
-		struct eva_kmd_buffer *buf)
+		struct cvp_kmd_buffer *buf)
 {
 	struct msm_cvp_inst *s;
 	int rc = 0;
@@ -1074,8 +1077,9 @@ static int msm_cvp_unregister_buffer(struct msm_cvp_inst *inst,
 int msm_cvp_session_create(struct msm_cvp_inst *inst)
 {
 	int rc = 0;
+#ifdef CVP_SYNX_ENABLED
 	struct synx_initialization_params params;
-
+#endif
 	if (!inst || !inst->core)
 		return -EINVAL;
 
@@ -1103,13 +1107,13 @@ int msm_cvp_session_create(struct msm_cvp_inst *inst)
 				"Failed to set ARP buffers\n");
 		goto fail_init;
 	}
-
+#ifdef CVP_SYNX_ENABLED
 	params.name = "cvp-kernel-client";
 	if (synx_initialize(&inst->synx_session_id, &params)) {
 		dprintk(CVP_ERR, "%s synx_initialize failed\n", __func__);
 		rc = -EFAULT;
 	}
-
+#endif
 fail_init:
 	return rc;
 }
@@ -1125,7 +1129,7 @@ static int session_state_check_init(struct msm_cvp_inst *inst)
 
 	return msm_cvp_session_create(inst);
 }
-
+#ifdef CVP_SYNX_ENABLED
 static int cvp_fence_thread_start(struct msm_cvp_inst *inst)
 {
 	u32 tnum = 0;
@@ -1198,9 +1202,9 @@ static int cvp_fence_thread_stop(struct msm_cvp_inst *inst)
 
 	return 0;
 }
-
+#endif
 static int msm_cvp_session_start(struct msm_cvp_inst *inst,
-		struct eva_kmd_arg *arg)
+		struct cvp_kmd_arg *arg)
 {
 	struct cvp_session_queue *sq;
 
@@ -1214,15 +1218,18 @@ static int msm_cvp_session_start(struct msm_cvp_inst *inst,
 	}
 	sq->state = QUEUE_ACTIVE;
 	spin_unlock(&sq->lock);
-
+#ifdef CVP_SYNX_ENABLED
 	return cvp_fence_thread_start(inst);
+#else
+	return 0;
+#endif
 }
 
 static int msm_cvp_session_stop(struct msm_cvp_inst *inst,
-		struct eva_kmd_arg *arg)
+		struct cvp_kmd_arg *arg)
 {
 	struct cvp_session_queue *sq;
-	struct eva_kmd_session_control *sc = &arg->data.session_ctrl;
+	struct cvp_kmd_session_control *sc = &arg->data.session_ctrl;
 
 	sq = &inst->session_queue;
 
@@ -1241,8 +1248,11 @@ static int msm_cvp_session_stop(struct msm_cvp_inst *inst,
 	spin_unlock(&sq->lock);
 
 	wake_up_all(&inst->session_queue.wq);
-
+#ifdef CVP_SYNX_ENABLED
 	return cvp_fence_thread_stop(inst);
+#else
+	return 0;
+#endif
 }
 
 int msm_cvp_session_queue_stop(struct msm_cvp_inst *inst)
@@ -1265,14 +1275,17 @@ int msm_cvp_session_queue_stop(struct msm_cvp_inst *inst)
 	spin_unlock(&sq->lock);
 
 	wake_up_all(&inst->session_queue.wq);
-
+#ifdef CVP_SYNX_ENABLED
 	return cvp_fence_thread_stop(inst);
+#else
+	return 0;
+#endif
 }
 
 static int msm_cvp_session_ctrl(struct msm_cvp_inst *inst,
-		struct eva_kmd_arg *arg)
+		struct cvp_kmd_arg *arg)
 {
-	struct eva_kmd_session_control *ctrl = &arg->data.session_ctrl;
+	struct cvp_kmd_session_control *ctrl = &arg->data.session_ctrl;
 	int rc = 0;
 	unsigned int ctrl_type;
 
@@ -1304,9 +1317,9 @@ static int msm_cvp_session_ctrl(struct msm_cvp_inst *inst,
 }
 
 static int msm_cvp_get_sysprop(struct msm_cvp_inst *inst,
-		struct eva_kmd_arg *arg)
+		struct cvp_kmd_arg *arg)
 {
-	struct eva_kmd_sys_properties *props = &arg->data.sys_properties;
+	struct cvp_kmd_sys_properties  *props = &arg->data.sys_properties;
 	struct cvp_hfi_device *hdev;
 	struct iris_hfi_device *hfi;
 	int i, rc = 0;
@@ -1336,10 +1349,10 @@ static int msm_cvp_get_sysprop(struct msm_cvp_inst *inst,
 }
 
 static int msm_cvp_set_sysprop(struct msm_cvp_inst *inst,
-		struct eva_kmd_arg *arg)
+		struct cvp_kmd_arg *arg)
 {
-	struct eva_kmd_sys_properties *props = &arg->data.sys_properties;
-	struct eva_kmd_sys_property *prop_array;
+	struct cvp_kmd_sys_properties  *props = &arg->data.sys_properties;
+	struct cvp_kmd_sys_property *prop_array;
 	struct cvp_session_prop *session_prop;
 	int i, rc = 0;
 
@@ -1439,6 +1452,63 @@ static int msm_cvp_set_sysprop(struct msm_cvp_inst *inst,
 			rc = -EFAULT;
 		}
 	}
+	return rc;
+}
+#ifdef CVP_SYNX_ENABLED
+static int cvp_drain_fence_cmd_queue_partial(struct msm_cvp_inst *inst)
+{
+	unsigned long wait_time;
+	struct cvp_fence_queue *q;
+	struct cvp_fence_command *f;
+	int rc = 0;
+	int count = 0, max_count = 0;
+
+	q = &inst->fence_cmd_queue;
+
+	mutex_lock(&q->lock);
+
+	list_for_each_entry(f, &q->sched_list, list) {
+		if (f->mode == OP_FLUSH)
+			continue;
+		++count;
+	}
+
+	list_for_each_entry(f, &q->wait_list, list) {
+		if (f->mode == OP_FLUSH)
+			continue;
+		++count;
+	}
+
+	mutex_unlock(&q->lock);
+	wait_time = count * CVP_MAX_WAIT_TIME * 1000;
+
+	dprintk(CVP_SYNX, "%s: wait %d us for %d fence command\n",
+			__func__, wait_time, count);
+
+	count = 0;
+	max_count = wait_time / 100;
+
+retry:
+	mutex_lock(&q->lock);
+	f = list_first_entry(&q->sched_list, struct cvp_fence_command, list);
+
+	/* Wait for all normal frames to finish before return */
+	if ((f && f->mode == OP_FLUSH) ||
+		(list_empty(&q->sched_list) && list_empty(&q->wait_list))) {
+		mutex_unlock(&q->lock);
+		return rc;
+	}
+
+	mutex_unlock(&q->lock);
+	usleep_range(100, 200);
+	++count;
+	if (count < max_count) {
+		goto retry;
+	} else {
+		rc = -ETIMEDOUT;
+		dprintk(CVP_ERR, "%s: timed out!\n", __func__);
+	}
+
 	return rc;
 }
 
@@ -1602,7 +1672,108 @@ exit:
 	return rc;
 }
 
-int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct eva_kmd_arg *arg)
+static void cvp_mark_fence_command(struct msm_cvp_inst *inst, u64 frame_id)
+{
+	int found = false;
+	struct cvp_fence_queue *q;
+	struct cvp_fence_command *f;
+
+	q = &inst->fence_cmd_queue;
+
+	list_for_each_entry(f, &q->sched_list, list) {
+		if (found) {
+			f->mode = OP_FLUSH;
+			continue;
+		}
+
+		if (f->frame_id >= frame_id) {
+			found = true;
+			f->mode = OP_FLUSH;
+		}
+	}
+
+	list_for_each_entry(f, &q->wait_list, list) {
+		if (found) {
+			f->mode = OP_FLUSH;
+			continue;
+		}
+
+		if (f->frame_id >= frame_id) {
+			found = true;
+			f->mode = OP_FLUSH;
+		}
+	}
+}
+
+static int cvp_flush_frame(struct msm_cvp_inst *inst, u64 frame_id)
+{
+	int rc = 0;
+	struct msm_cvp_inst *s;
+	struct cvp_fence_queue *q;
+	struct cvp_fence_command *f, *d;
+	u64 ktid;
+
+	if (!inst || !inst->core) {
+		dprintk(CVP_ERR, "%s: invalid params\n", __func__);
+		return -EINVAL;
+	}
+
+	s = cvp_get_inst_validate(inst->core, inst);
+	if (!s)
+		return -ECONNRESET;
+
+	dprintk(CVP_SESS, "Session %llx, flush frame with id %llu\n",
+			inst, frame_id);
+	q = &inst->fence_cmd_queue;
+
+	mutex_lock(&q->lock);
+	q->mode = OP_DRAINING;
+
+	cvp_mark_fence_command(inst, frame_id);
+
+	list_for_each_entry_safe(f, d, &q->wait_list, list) {
+		if (f->mode != OP_FLUSH)
+			continue;
+
+		ktid = f->pkt->client_data.kdata & (FENCE_BIT - 1);
+
+		dprintk(CVP_SYNX, "%s: flush frame %llu %llu from wait_list\n",
+			__func__, ktid, f->frame_id);
+
+		list_del_init(&f->list);
+		msm_cvp_unmap_frame(inst, f->pkt->client_data.kdata);
+		cvp_cancel_synx(inst, CVP_OUTPUT_SYNX, f,
+				SYNX_STATE_SIGNALED_CANCEL);
+		cvp_release_synx(inst, f);
+		cvp_free_fence_data(f);
+	}
+
+	list_for_each_entry(f, &q->sched_list, list) {
+		if (f->mode != OP_FLUSH)
+			continue;
+
+		ktid = f->pkt->client_data.kdata & (FENCE_BIT - 1);
+
+		dprintk(CVP_SYNX, "%s: flush frame %llu %llu from sched_list\n",
+			__func__, ktid, f->frame_id);
+		cvp_cancel_synx(inst, CVP_INPUT_SYNX, f,
+				SYNX_STATE_SIGNALED_CANCEL);
+	}
+
+	mutex_unlock(&q->lock);
+
+	rc = cvp_drain_fence_cmd_queue_partial(inst);
+	if (rc)
+		dprintk(CVP_WARN, "%s: continue flush. rc %d\n",
+		__func__, rc);
+
+	rc = cvp_flush_all(inst);
+
+	cvp_put_inst(s);
+	return rc;
+}
+#endif
+int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct cvp_kmd_arg *arg)
 {
 	int rc = 0;
 
@@ -1612,7 +1783,7 @@ int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct eva_kmd_arg *arg)
 	}
 	dprintk(CVP_HFI, "%s: arg->type = %x", __func__, arg->type);
 
-	if (arg->type != EVA_KMD_SESSION_CONTROL &&
+	if (arg->type != CVP_KMD_SESSION_CONTROL &&
 		arg->type != EVA_KMD_SET_SYS_PROPERTY &&
 		arg->type != EVA_KMD_GET_SYS_PROPERTY) {
 
@@ -1628,8 +1799,8 @@ int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct eva_kmd_arg *arg)
 	switch (arg->type) {
 	case EVA_KMD_GET_SESSION_INFO:
 	{
-		struct eva_kmd_session_info *session =
-			(struct eva_kmd_session_info *)&arg->data.session;
+		struct cvp_kmd_session_info *session =
+			(struct cvp_kmd_session_info *)&arg->data.session;
 
 		rc = msm_cvp_get_session_info(inst, session);
 		break;
@@ -1641,42 +1812,44 @@ int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct eva_kmd_arg *arg)
 	}
 	case EVA_KMD_REGISTER_BUFFER:
 	{
-		struct eva_kmd_buffer *buf =
-			(struct eva_kmd_buffer *)&arg->data.regbuf;
+		struct cvp_kmd_buffer *buf =
+			(struct cvp_kmd_buffer *)&arg->data.regbuf;
 
 		rc = msm_cvp_register_buffer(inst, buf);
 		break;
 	}
 	case EVA_KMD_UNREGISTER_BUFFER:
 	{
-		struct eva_kmd_buffer *buf =
-			(struct eva_kmd_buffer *)&arg->data.unregbuf;
+		struct cvp_kmd_buffer *buf =
+			(struct cvp_kmd_buffer *)&arg->data.unregbuf;
 
 		rc = msm_cvp_unregister_buffer(inst, buf);
 		break;
 	}
 	case EVA_KMD_RECEIVE_MSG_PKT:
 	{
-		struct eva_kmd_hfi_packet *out_pkt =
-			(struct eva_kmd_hfi_packet *)&arg->data.hfi_pkt;
+		struct cvp_kmd_hfi_packet *out_pkt =
+			(struct cvp_kmd_hfi_packet *)&arg->data.hfi_pkt;
 		rc = msm_cvp_session_receive_hfi(inst, out_pkt);
 		break;
 	}
 	case EVA_KMD_SEND_CMD_PKT:
 	{
-		struct eva_kmd_hfi_packet *in_pkt =
-			(struct eva_kmd_hfi_packet *)&arg->data.hfi_pkt;
+		struct cvp_kmd_hfi_packet *in_pkt =
+			(struct cvp_kmd_hfi_packet *)&arg->data.hfi_pkt;
 
 		rc = msm_cvp_session_process_hfi(inst, in_pkt,
 				arg->buf_offset, arg->buf_num);
 		break;
 	}
+#ifdef CVP_SYNX_ENABLED
 	case EVA_KMD_SEND_FENCE_CMD_PKT:
 	{
 		rc = msm_cvp_session_process_hfi_fence(inst, arg);
 		break;
 	}
-	case EVA_KMD_SESSION_CONTROL:
+#endif
+	case CVP_KMD_SESSION_CONTROL:
 		rc = msm_cvp_session_ctrl(inst, arg);
 		break;
 	case EVA_KMD_GET_SYS_PROPERTY:
@@ -1685,6 +1858,7 @@ int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct eva_kmd_arg *arg)
 	case EVA_KMD_SET_SYS_PROPERTY:
 		rc = msm_cvp_set_sysprop(inst, arg);
 		break;
+#ifdef CVP_SYNX_ENABLED
 	case EVA_KMD_FLUSH_ALL:
 		rc = cvp_flush_all(inst);
 		break;
@@ -1692,6 +1866,7 @@ int msm_cvp_handle_syscall(struct msm_cvp_inst *inst, struct eva_kmd_arg *arg)
 		dprintk(CVP_WARN, "EVA_KMD_FLUSH_FRAME IOCTL deprecated\n");
 		rc = 0;
 		break;
+#endif
 	default:
 		dprintk(CVP_HFI, "%s: unknown arg type %#x\n",
 				__func__, arg->type);

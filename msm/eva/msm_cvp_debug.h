@@ -8,10 +8,10 @@
 #include <linux/debugfs.h>
 #include <linux/delay.h>
 #include "msm_cvp_internal.h"
-#include "trace/events/msm_cvp_events.h"
+//#include "trace/events/msm_cvp_events.h"
 
 #ifndef CVP_DBG_LABEL
-#define CVP_DBG_LABEL "msm_cvp21"
+#define CVP_DBG_LABEL "msm_cvp"
 #endif
 
 #define CVP_DBG_TAG CVP_DBG_LABEL ": %4s: "
