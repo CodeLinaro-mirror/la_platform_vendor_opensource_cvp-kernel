@@ -10,10 +10,11 @@
 #include <linux/types.h>
 #include <linux/dma-buf.h>
 #include <linux/dma-heap.h>
+#include <linux/dma-buf-map.h>
 #include <linux/ion.h>
 #include <linux/msm_ion.h>
 #include <linux/refcount.h>
-#include <media/msm_eva_private.h>
+#include <media/msm_cvp_private.h>
 
 #define MAX_FRAME_BUFFER_NUMS 30
 #define MAX_DMABUF_NUMS 64
@@ -75,6 +76,7 @@ struct msm_cvp_smem {
 	u32 bitmap_index;
 	u32 flags;
 	struct cvp_dma_mapping_info mapping_info;
+	struct dma_buf_map dmabuf_map;
 };
 
 struct cvp_dmamap_cache {
@@ -146,7 +148,7 @@ void print_cvp_buffer(u32 tag, const char *str,
 		struct cvp_internal_buf *cbuf);
 void print_client_buffer(u32 tag, const char *str,
 		struct msm_cvp_inst *inst,
-		struct eva_kmd_buffer *cbuf);
+		struct cvp_kmd_buffer *cbuf);
 void print_smem(u32 tag, const char *str,
 		struct msm_cvp_inst *inst,
 		struct msm_cvp_smem *smem);
@@ -177,25 +179,25 @@ struct cvp_internal_buf *cvp_allocate_arp_bufs(struct msm_cvp_inst *inst,
 					u32 buffer_size);
 int cvp_release_arp_buffers(struct msm_cvp_inst *inst);
 int msm_cvp_map_buf_dsp(struct msm_cvp_inst *inst,
-			struct eva_kmd_buffer *buf);
+			struct cvp_kmd_buffer *buf);
 int msm_cvp_unmap_buf_dsp(struct msm_cvp_inst *inst,
-			struct eva_kmd_buffer *buf);
+			struct cvp_kmd_buffer *buf);
 void msm_cvp_cache_operations(struct msm_cvp_smem *smem,
 			u32 type, u32 offset, u32 size);
 u32 msm_cvp_map_frame_buf(struct msm_cvp_inst *inst,
 			struct cvp_buf_type *buf,
 			struct msm_cvp_frame *frame);
 int msm_cvp_mark_user_persist(struct msm_cvp_inst *inst,
-			struct eva_kmd_hfi_packet *in_pkt,
+			struct cvp_kmd_hfi_packet *in_pkt,
 			unsigned int offset, unsigned int buf_num);
 int msm_cvp_map_user_persist(struct msm_cvp_inst *inst,
-			struct eva_kmd_hfi_packet *in_pkt,
+			struct cvp_kmd_hfi_packet *in_pkt,
 			unsigned int offset, unsigned int buf_num);
 int msm_cvp_unmap_user_persist(struct msm_cvp_inst *inst,
-			struct eva_kmd_hfi_packet *in_pkt,
+			struct cvp_kmd_hfi_packet *in_pkt,
 			unsigned int offset, unsigned int buf_num);
 int msm_cvp_map_frame(struct msm_cvp_inst *inst,
-		struct eva_kmd_hfi_packet *in_pkt,
+		struct cvp_kmd_hfi_packet *in_pkt,
 		unsigned int offset, unsigned int buf_num);
 void msm_cvp_unmap_frame(struct msm_cvp_inst *inst, u64 ktid);
 int msm_cvp_session_deinit_buffers(struct msm_cvp_inst *inst);

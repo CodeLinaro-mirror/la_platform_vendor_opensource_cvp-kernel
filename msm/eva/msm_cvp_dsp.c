@@ -5,7 +5,7 @@
 #include <linux/module.h>
 #include <linux/rpmsg.h>
 #include <linux/of_platform.h>
-#include <linux/of_fdt.h>
+#include <soc/qcom/of_common.h>
 #include <soc/qcom/secure_buffer.h>
 #include "msm_cvp_dsp.h"
 #include "msm_cvp_internal.h"

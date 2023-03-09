@@ -8,19 +8,35 @@
 #include <linux/dma-direction.h>
 #include <linux/iommu.h>
 #include <linux/msm_dma_iommu_mapping.h>
-#include <linux/ion.h>
-#include <linux/msm_ion.h>
 #include <soc/qcom/secure_buffer.h>
 #include <linux/mem-buf.h>
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/qcom-dma-mapping.h>
+#include <linux/version.h>
 #include "msm_cvp_core.h"
 #include "msm_cvp_debug.h"
 #include "msm_cvp_resources.h"
 #include "cvp_core_hfi.h"
 #include "msm_cvp_dsp.h"
 
+static void * __cvp_dma_buf_vmap(struct dma_buf *dbuf)
+{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 13, 0))
+	return dma_buf_vmap(dbuf);
+#else
+	struct dma_buf_map map;
+	void *dma_map;
+	int err;
+
+	err = dma_buf_vmap(dbuf, &map);
+	dma_map = err ? NULL : map.vaddr;
+	if (!dma_map)
+		dprintk(CVP_ERR, "map to kvaddr failed\n");
+
+	return dma_map;
+#endif
+}
 static int msm_dma_get_device_address(struct dma_buf *dbuf, u32 align,
 	dma_addr_t *iova, u32 flags, struct msm_cvp_platform_resources *res,
 	struct cvp_dma_mapping_info *mapping_info)
@@ -295,9 +311,11 @@ static int alloc_dma_mem(size_t size, u32 align, int map_kernel,
 
 	if (mem->flags & SMEM_NON_PIXEL) {
 		vmids[0] = VMID_CP_NON_PIXEL;
+		dprintk(CVP_MEM, "%s: SMEM_NON_PIXEL\n", __func__);
 		rc = mem_buf_lend(dbuf, &arg);
 	} else if (mem->flags & SMEM_PIXEL) {
 		vmids[0] = VMID_CP_PIXEL;
+		dprintk(CVP_MEM, "%s: SMEM_PIXEL\n", __func__);
 		rc = mem_buf_lend(dbuf, &arg);
 	}
 
@@ -330,7 +348,7 @@ static int alloc_dma_mem(size_t size, u32 align, int map_kernel,
 
 	if (map_kernel) {
 		dma_buf_begin_cpu_access(dbuf, DMA_BIDIRECTIONAL);
-		mem->kvaddr = dma_buf_vmap(dbuf);
+		mem->kvaddr = __cvp_dma_buf_vmap(dbuf);
 		if (!mem->kvaddr) {
 			dprintk(CVP_ERR,
 				"Failed to map shared mem in kernel\n");
@@ -389,7 +407,7 @@ int msm_cvp_smem_alloc(size_t size, u32 align, int map_kernel,
 			__func__, (u32)size);
 		return -EINVAL;
 	}
-
+dprintk(CVP_ERR, " %s with size :%x \n",__func__, (u32)size);
 	rc = alloc_dma_mem(size, align, map_kernel,
 		(struct msm_cvp_platform_resources *)res, smem);
 
