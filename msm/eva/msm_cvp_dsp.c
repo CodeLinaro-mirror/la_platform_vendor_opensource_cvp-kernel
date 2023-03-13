@@ -152,27 +152,23 @@ static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
 	struct cvp_dsp_apps *me = &gfa_cv;
 	const char *edge_name = NULL;
 	int ret = 0;
-
 	ret = of_property_read_string(rpdev->dev.parent->of_node,
 			"label", &edge_name);
 	if (ret) {
 		dprintk(CVP_ERR, "glink edge 'label' not found in node\n");
 		return ret;
 	}
-
 	if (strcmp(edge_name, "cdsp")) {
 		dprintk(CVP_ERR,
 			"%s: Failed to probe rpmsg device.Node name:%s\n",
 			__func__, edge_name);
 		return -EINVAL;
 	}
-
 	mutex_lock(&me->lock);
 	me->chan = rpdev;
 	me->state = DSP_PROBED;
 	complete(&me->completions[CPU2DSP_MAX_CMD]);
 	mutex_unlock(&me->lock);
-
 	return ret;
 }
 
@@ -852,7 +848,6 @@ int cvp_dsp_device_init(void)
 	char tname[16];
 	int rc;
 	int i;
-
 	add_va_node_to_list(CVP_DBG_DUMP, &gfa_cv, sizeof(struct cvp_dsp_apps),
         "cvp_dsp_apps-gfa_cv", false);
 	mutex_init(&me->lock);
@@ -873,7 +868,8 @@ int cvp_dsp_device_init(void)
 		goto register_bail;
 	}
 	mutex_lock(&me->lock);
-	me->state = DSP_UNINIT;
+	if (me->state == DSP_INVALID)
+		me->state = DSP_UNINIT;
 	mutex_unlock(&me->lock);
 	
 	snprintf(tname, sizeof(tname), "cvp-dsp-thread");
