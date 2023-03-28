@@ -1176,9 +1176,10 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 	reg_gdsc = __read_register(device, CVP_CC_MVS1C_GDSCR);
 	dprintk(CVP_CORE, "Controller GDSCR value: %x \n", reg_gdsc);
 	
-	ctrl_init_val = BIT(0);
+//	ctrl_init_val = BIT(0);	
+	ctrl_init_val = 0x3;
 	__write_register(device, CVP_CTRL_INIT, ctrl_init_val);
-	while (!ctrl_status && count < max_tries) {
+	while (!(ctrl_status&1) && count < max_tries) {
 		ctrl_status = __read_register(device, CVP_CTRL_STATUS);
 		if ((ctrl_status & CVP_CTRL_ERROR_STATUS__M) == 0x4) {
 			dprintk(CVP_ERR, "invalid setting for UC_REGION\n");
@@ -1196,7 +1197,8 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 			ctrl_status);
 		rc = -ENODEV;
 	}
-
+       usleep_range(10000,20000);
+	   dprintk(CVP_ERR, "reading control status \n");
 	/* Enable interrupt before sending commands to tensilica */
 	__write_register(device, CVP_CPU_CS_H2XSOFTINTEN, 0x1);
 	__write_register(device, CVP_CPU_CS_X2RPMh, 0x0);
@@ -1956,7 +1958,9 @@ static int __sys_set_power_control(struct iris_hfi_device *device,
 static int iris_hfi_core_init(void *device)
 {
 	int rc = 0;
-	u32 ipcc_iova;
+//	int temp;
+	//u32 ipcc_iova;
+//	u32 control_status = 0;
 	struct cvp_hfi_cmd_sys_init_packet pkt;
 	struct cvp_hfi_cmd_sys_get_property_packet version_pkt;
 	struct iris_hfi_device *dev;
@@ -2010,11 +2014,11 @@ static int iris_hfi_core_init(void *device)
 	add_queue_header_to_va_md_list((void*)dev);
 	add_hfi_queue_to_va_md_list((void*)dev);
 
-	rc = msm_cvp_map_ipcc_regs(&ipcc_iova);
-	if (!rc) {
-		dprintk(CVP_CORE, "IPCC iova 0x%x\n", ipcc_iova);
-		__write_register(dev, CVP_MMAP_ADDR, ipcc_iova);
-	}
+	//rc = msm_cvp_map_ipcc_regs(&ipcc_iova);
+	//if (!rc) {
+	//	dprintk(CVP_CORE, "IPCC iova 0x%x\n", ipcc_iova);
+	//	__write_register(dev, CVP_MMAP_ADDR, ipcc_iova);
+	//}
 
 	rc = __boot_firmware(dev);
 	if (rc) {
@@ -2448,10 +2452,10 @@ err_create_pkt:
 }
 
 static int iris_hfi_session_send(void *sess,
-		struct eva_kmd_hfi_packet *in_pkt)
+		struct cvp_kmd_hfi_packet *in_pkt)
 {
 	int rc = 0;
-	struct eva_kmd_hfi_packet pkt;
+	struct cvp_kmd_hfi_packet pkt;
 	struct cvp_hal_session *session = sess;
 	struct iris_hfi_device *device;
 
@@ -3202,6 +3206,10 @@ static int __init_regs_and_interrupts(struct iris_hfi_device *device,
 	hal->register_base = devm_ioremap(&res->pdev->dev,
 			res->register_base, res->register_size);
 	hal->register_size = res->register_size;
+	dprintk(CVP_INFO,
+		"hal firmware_base = %pa, hal register_base = %pa, hal register_size = %d\n",
+		&hal->firmware_base, &hal->register_base,
+		hal->register_size);
 	if (!hal->register_base) {
 		dprintk(CVP_ERR,
 			"could not map reg addr %pa of size %d\n",
@@ -3952,13 +3960,13 @@ static int __power_on_core(struct iris_hfi_device *device)
 		return rc;
 	}
 
-	rc = msm_cvp_prepare_enable_clk(device, "video_cc_mvs1_clk_src");
-	if (rc) {
-		dprintk(CVP_ERR, "Failed to enable video_cc_mvs1_clk_src:%d\n",
-			rc);
-		__disable_regulator(device, "cvp-core");
-		return rc;
-	}
+//	rc = msm_cvp_prepare_enable_clk(device, "video_cc_mvs1_clk_src");
+//	if (rc) {
+//		dprintk(CVP_ERR, "Failed to enable video_cc_mvs1_clk_src:%d\n",
+//			rc);
+//		__disable_regulator(device, "cvp-core");
+//		return rc;
+//	}
 
 	rc = msm_cvp_prepare_enable_clk(device, "core_clk");
 	if (rc) {
@@ -4185,7 +4193,7 @@ static int __power_off_core(struct iris_hfi_device *device)
 
 	__disable_regulator(device, "cvp-core");
 	msm_cvp_disable_unprepare_clk(device, "core_clk");
-	msm_cvp_disable_unprepare_clk(device, "video_cc_mvs1_clk_src");
+	//msm_cvp_disable_unprepare_clk(device, "video_cc_mvs1_clk_src");
 	return 0;
 }
 

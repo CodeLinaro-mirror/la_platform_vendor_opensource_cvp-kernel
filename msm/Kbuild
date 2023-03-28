@@ -9,7 +9,7 @@ ccflags-y += -I$(srctree)/techpack/eva/msm/eva/ \
 
 # add flag to compile mmrm actual implementatio instead of stub version.
 # to follow up with mmrm team if techpack users need to define this for long term?
-KBUILD_CPPFLAGS += -DCONFIG_MSM_MMRM
+#KBUILD_CPPFLAGS += -DCONFIG_MSM_MMRM
 
 # ported from Android.mk
 $(info within KBUILD file KBUILD_EXTRA_SYMBOLS = $(KBUILD_EXTRA_SYMBOLS))

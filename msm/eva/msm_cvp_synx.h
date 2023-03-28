@@ -7,7 +7,7 @@
 #define _MSM_CVP_SYNX_H_
 
 #include <linux/types.h>
-#include <media/msm_eva_private.h>
+#include <media/msm_cvp_private.h>
 #include "cvp_comm_def.h"
 
 
@@ -43,7 +43,7 @@ enum cvp_synx_type {
 	CVP_OUTPUT_SYNX,
 	CVP_INVALID_SYNX,
 };
-
+#ifdef CVP_SYNX_ENABLED
 int cvp_import_synx(struct msm_cvp_inst *inst, struct cvp_fence_command *fc,
 		u32 *fence);
 int cvp_release_synx(struct msm_cvp_inst *inst, struct cvp_fence_command *fc);
@@ -52,4 +52,5 @@ int cvp_cancel_synx(struct msm_cvp_inst *inst, enum cvp_synx_type type,
 int cvp_synx_ops(struct msm_cvp_inst *inst, enum cvp_synx_type type,
 		struct cvp_fence_command *fc, u32 *synx_state);
 void cvp_dump_fence_queue(struct msm_cvp_inst *inst);
+#endif
 #endif

@@ -69,7 +69,7 @@ void print_cvp_buffer(u32 tag, const char *str, struct msm_cvp_inst *inst,
 }
 
 void print_client_buffer(u32 tag, const char *str,
-		struct msm_cvp_inst *inst, struct eva_kmd_buffer *cbuf)
+		struct msm_cvp_inst *inst, struct cvp_kmd_buffer *cbuf)
 {
 	if (!(tag & msm_cvp_debug21) || !inst || !cbuf)
 		return;
@@ -80,7 +80,7 @@ void print_client_buffer(u32 tag, const char *str,
 		cbuf->offset, cbuf->size, cbuf->type, cbuf->flags);
 }
 
-int msm_cvp_map_buf_dsp(struct msm_cvp_inst *inst, struct eva_kmd_buffer *buf)
+int msm_cvp_map_buf_dsp(struct msm_cvp_inst *inst, struct cvp_kmd_buffer *buf)
 {
 	int rc = 0;
 	bool found = false;
@@ -193,7 +193,7 @@ exit:
 	return rc;
 }
 
-int msm_cvp_unmap_buf_dsp(struct msm_cvp_inst *inst, struct eva_kmd_buffer *buf)
+int msm_cvp_unmap_buf_dsp(struct msm_cvp_inst *inst, struct cvp_kmd_buffer *buf)
 {
 	int rc = 0;
 	bool found;
@@ -600,7 +600,7 @@ void msm_cvp_unmap_frame(struct msm_cvp_inst *inst, u64 ktid)
 }
 
 int msm_cvp_unmap_user_persist(struct msm_cvp_inst *inst,
-				struct eva_kmd_hfi_packet *in_pkt,
+				struct cvp_kmd_hfi_packet *in_pkt,
 				unsigned int offset, unsigned int buf_num)
 {
 	struct cvp_hfi_cmd_session_hdr *cmd_hdr;
@@ -651,7 +651,7 @@ int msm_cvp_unmap_user_persist(struct msm_cvp_inst *inst,
 }
 
 int msm_cvp_mark_user_persist(struct msm_cvp_inst *inst,
-			struct eva_kmd_hfi_packet *in_pkt,
+			struct cvp_kmd_hfi_packet *in_pkt,
 			unsigned int offset, unsigned int buf_num)
 {
 	struct cvp_hfi_cmd_session_hdr *cmd_hdr;
@@ -700,7 +700,7 @@ int msm_cvp_mark_user_persist(struct msm_cvp_inst *inst,
 }
 
 int msm_cvp_map_user_persist(struct msm_cvp_inst *inst,
-			struct eva_kmd_hfi_packet *in_pkt,
+			struct cvp_kmd_hfi_packet *in_pkt,
 			unsigned int offset, unsigned int buf_num)
 {
 	struct cvp_buf_type *buf;
@@ -731,7 +731,7 @@ int msm_cvp_map_user_persist(struct msm_cvp_inst *inst,
 }
 
 int msm_cvp_map_frame(struct msm_cvp_inst *inst,
-		struct eva_kmd_hfi_packet *in_pkt,
+		struct cvp_kmd_hfi_packet *in_pkt,
 		unsigned int offset, unsigned int buf_num)
 {
 	struct cvp_buf_type *buf;

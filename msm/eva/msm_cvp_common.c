@@ -666,8 +666,10 @@ static void handle_sys_error(enum hal_command_response cmd, void *data)
 				inst->cur_cmd_type, inst->state);
 		if (inst->state != MSM_CVP_CORE_INVALID) {
 			change_cvp_inst_state(inst, MSM_CVP_CORE_INVALID);
+#ifdef CVP_SYNX_ENABLED
 			if (cvp_stop_clean_fence_queue(inst))
 				dprintk(CVP_ERR, "Failed to clean fences\n");
+#endif
 			for (i = 0; i < ARRAY_SIZE(inst->completions); i++)
 				complete(&inst->completions[i]);
 			spin_lock_irqsave(&inst->event_handler.lock, flags);
@@ -1101,6 +1103,23 @@ int msm_cvp_deinit_core(struct msm_cvp_inst *inst)
 		goto core_already_uninited;
 	}
 
+	if (!core->resources.never_unload_fw) {
+		cancel_delayed_work(&core->fw_unload_work);
+
+		/*
+		 * Delay unloading of firmware. This is useful
+		 * in avoiding firmware download delays in cases where we
+		 * will have a burst of back to back cvp sessions
+		 */
+		schedule_delayed_work(&core->fw_unload_work,
+			msecs_to_jiffies(core->state == CVP_CORE_INIT_DONE ?
+			core->resources.msm_cvp_firmware_unload_delay : 0));
+
+		dprintk(CVP_CORE, "firmware unload delayed by %u ms\n",
+			core->state == CVP_CORE_INIT_DONE ?
+			core->resources.msm_cvp_firmware_unload_delay : 0);
+	}
+
 core_already_uninited:
 	change_cvp_inst_state(inst, MSM_CVP_CORE_UNINIT);
 	mutex_unlock(&core->lock);
@@ -1260,6 +1279,9 @@ int msm_cvp_comm_try_state(struct msm_cvp_inst *inst, int state)
 		inst, hash32_ptr(inst->session), flipped_state, state);
 	switch (flipped_state) {
 	case MSM_CVP_CORE_UNINIT_DONE:
+		rc = msm_comm_init_core(inst);
+		if (rc || state <= get_flipped_state(inst->state, state))
+			break;
 	case MSM_CVP_CORE_INIT:
 		rc = msm_comm_init_core(inst);
 		if (rc || state <= get_flipped_state(inst->state, state))

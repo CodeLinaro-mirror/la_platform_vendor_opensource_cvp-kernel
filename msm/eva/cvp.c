@@ -314,10 +314,10 @@ static struct attribute_group msm_cvp_core_attr_group = {
 };
 
 static const struct of_device_id msm_cvp_plat_match[] = {
-	{.compatible = "qcom,msm-cvp21"},
-	{.compatible = "qcom,msm-cvp21,context-bank"},
-	{.compatible = "qcom,msm-cvp21,bus"},
-	{.compatible = "qcom,msm-cvp21,mem-cdsp"},
+	{.compatible = "qcom,msm-cvp"},
+	{.compatible = "qcom,msm-cvp,context-bank"},
+	{.compatible = "qcom,msm-cvp,bus"},
+	{.compatible = "qcom,msm-cvp,mem-cdsp"},
 	{}
 };
 
@@ -420,7 +420,7 @@ static int msm_probe_cvp_device(struct platform_device *pdev)
 
 	dprintk(CVP_CORE, "populating sub devices\n");
 	/*
-	 * Trigger probe for each sub-device i.e. qcom,msm-cvp21,context-bank.
+	 * Trigger probe for each sub-device i.e. qcom,msm-cvp,context-bank.
 	 * When msm_cvp_probe is called for each sub-device, parse the
 	 * context-bank details and store it in core->resources.context_banks
 	 * list.
@@ -497,16 +497,16 @@ static int msm_cvp_probe(struct platform_device *pdev)
 	 * the end of the probe function after msm-cvp device probe is
 	 * completed. Return immediately after completing sub-device probe.
 	 */
-	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-cvp21")) {
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-cvp")) {
 		return msm_probe_cvp_device(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
-		"qcom,msm-cvp21,bus")) {
+		"qcom,msm-cvp,bus")) {
 		return msm_cvp_probe_bus(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
-		"qcom,msm-cvp21,context-bank")) {
+		"qcom,msm-cvp,context-bank")) {
 		return msm_cvp_probe_context_bank(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
-		"qcom,msm-cvp21,mem-cdsp")) {
+		"qcom,msm-cvp,mem-cdsp")) {
 		return msm_cvp_probe_mem_cdsp(pdev);
 	}
 
@@ -553,7 +553,7 @@ static int msm_cvp_pm_suspend(struct device *dev)
 	 *   subdevices (e.g. context banks)
 	 */
 	if (!dev || !dev->driver ||
-		!of_device_is_compatible(dev->of_node, "qcom,msm-cvp21"))
+		!of_device_is_compatible(dev->of_node, "qcom,msm-cvp"))
 		return 0;
 
 	core = dev_get_drvdata(dev);
@@ -588,7 +588,7 @@ static struct platform_driver msm_cvp_driver = {
 	.probe = msm_cvp_probe,
 	.remove = msm_cvp_remove,
 	.driver = {
-		.name = "msm_cvp21",
+		.name = "msm_cvp",
 		.of_match_table = msm_cvp_plat_match,
 		.pm = &msm_cvp_pm_ops,
 	},
@@ -643,5 +643,5 @@ static void __exit msm_cvp_exit(void)
 module_init(msm_cvp_init);
 module_exit(msm_cvp_exit);
 
-MODULE_SOFTDEP("pre: msm-mmrm");
+//MODULE_SOFTDEP("pre: msm-mmrm");
 MODULE_LICENSE("GPL v2");
