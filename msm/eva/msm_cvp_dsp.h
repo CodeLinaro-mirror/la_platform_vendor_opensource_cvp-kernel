@@ -10,8 +10,8 @@
 #include "msm_cvp_debug.h"
 #include "cvp_core_hfi.h"
 
-#define CVP_APPS_DSP_GLINK_GUID "cvp21-glink-apps-dsp"
-#define CVP_APPS_DSP_SMD_GUID "cvp21-smd-apps-dsp"
+#define CVP_APPS_DSP_GLINK_GUID "cvp-glink-apps-dsp"
+#define CVP_APPS_DSP_SMD_GUID "cvp-smd-apps-dsp"
 
 #define VMID_CDSP_Q6 (30)
 #define HLOS_VM_NUM 1

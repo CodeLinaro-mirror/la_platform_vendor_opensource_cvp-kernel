@@ -1176,8 +1176,8 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 	reg_gdsc = __read_register(device, CVP_CC_MVS1C_GDSCR);
 	dprintk(CVP_CORE, "Controller GDSCR value: %x \n", reg_gdsc);
 	
-//	ctrl_init_val = BIT(0);	
-	ctrl_init_val = 0x3;
+	ctrl_init_val = BIT(0);	
+	//ctrl_init_val = 0x3; disabling the cpu flow
 	__write_register(device, CVP_CTRL_INIT, ctrl_init_val);
 	while (!(ctrl_status&1) && count < max_tries) {
 		ctrl_status = __read_register(device, CVP_CTRL_STATUS);
