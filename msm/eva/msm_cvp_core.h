@@ -12,7 +12,7 @@
 #include <linux/ion.h>
 #include <linux/msm_ion.h>
 #include <linux/refcount.h>
-#include <media/msm_eva_private.h>
+#include <media/msm_cvp_private.h>
 #include "msm_cvp_buf.h"
 #include "msm_cvp_synx.h"
 
@@ -40,6 +40,6 @@ int msm_cvp_suspend21(int core_id);
 int msm_cvp_poll21(void *instance, struct file *filp,
 		struct poll_table_struct *pt);
 int msm_cvp_private21(void *cvp_inst, unsigned int cmd,
-		struct eva_kmd_arg *arg);
+		struct cvp_kmd_arg *arg);
 
 #endif

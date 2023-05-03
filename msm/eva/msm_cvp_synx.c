@@ -9,6 +9,7 @@
 #include "msm_cvp_core.h"
 #include "msm_cvp_dsp.h"
 
+#ifdef CVP_SYNX_ENABLED
 void cvp_dump_fence_queue(struct msm_cvp_inst *inst)
 {
 	struct cvp_fence_queue *q;
@@ -242,4 +243,4 @@ int cvp_synx_ops(struct msm_cvp_inst *inst, enum cvp_synx_type type,
 		return -EINVAL;
 	}
 }
-
+#endif

@@ -748,9 +748,9 @@ int cvp_read_platform_resources_from_drv_data(
 
 	res->sku_version = platform_data->sku_version;
 
-	// res->fw_name = "evass";
+	res->fw_name = "cvpss";
 
-	// dprintk(CVP_CORE, "Firmware filename: %s\n", res->fw_name);
+	dprintk(CVP_DBG, "Firmware filename: %s\n", res->fw_name);
 
 	res->auto_pil = find_key_value(platform_data,
 			"qcom,auto-pil");
@@ -763,6 +763,9 @@ int cvp_read_platform_resources_from_drv_data(
 
 	res->sw_power_collapsible = find_key_value(platform_data,
 			"qcom,sw-power-collapse");
+
+	res->never_unload_fw =  find_key_value(platform_data,
+			"qcom,never-unload-fw");
 
 	res->debug_timeout = find_key_value(platform_data,
 			"qcom,debug-timeout");

@@ -20,11 +20,14 @@
 #include <linux/kthread.h>
 #include <linux/dma-mapping.h>
 #include "msm_cvp_core.h"
-#include <media/msm_media_info.h>
-#include <media/msm_eva_private.h>
+//#include <media/msm_media_info.h>
+#include <media/msm_cvp_private.h>
 #include "cvp_hfi_api.h"
 #include "cvp_hfi_helper.h"
+
+#ifdef CVP_SYNX_ENABLED
 #include <synx_api.h>
+#endif
 
 #define MAX_SUPPORTED_INSTANCES 16
 #define MAX_DEBUGFS_NAME 50
@@ -311,7 +314,9 @@ struct msm_cvp_inst {
 	struct kref kref;
 	struct cvp_session_prop prop;
 	u32 cur_cmd_type;
+#ifdef CVP_SYNX_ENABLED
 	struct synx_session synx_session_id;
+#endif
 	struct cvp_fence_queue fence_cmd_queue;
 };
 

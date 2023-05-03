@@ -15,7 +15,7 @@
 #include "cvp_hfi_api.h"
 #include "msm_cvp_clocks.h"
 #include <linux/dma-buf.h>
-#include <media/msm_media_info.h>
+//#include <media/msm_media_info.h>
 
 #define MAX_EVENTS 30
 #define NUM_CYCLES16X16_HCD_FRAME 95
@@ -34,7 +34,7 @@ int msm_cvp_poll21(void *instance, struct file *filp,
 EXPORT_SYMBOL(msm_cvp_poll21);
 
 int msm_cvp_private21(void *cvp_inst, unsigned int cmd,
-		struct eva_kmd_arg *arg)
+		struct cvp_kmd_arg *arg)
 {
 	int rc = 0;
 	struct msm_cvp_inst *inst = (struct msm_cvp_inst *)cvp_inst;
@@ -320,7 +320,9 @@ wait:
 			dprintk(CVP_WARN, "Unprocessed frame %d\n",
 				frame->pkt_type);
 		mutex_unlock(&inst->frames.lock);
+#ifdef CVP_SYNX_ENABLED
 		cvp_dump_fence_queue(inst);
+#endif
 	}
 
 	if (cvp_release_arp_buffers(inst))
@@ -358,8 +360,9 @@ int msm_cvp_destroy(struct msm_cvp_inst *inst)
 
 	__deinit_session_queue(inst);
 	__deinit_fence_queue(inst);
+#ifdef CVP_SYNX_ENABLED
 	synx_uninitialize(inst->synx_session_id);
-
+#endif
 	pr_info(CVP_DBG_TAG "Closed cvp instance: %pK session_id = %d\n",
 		"sess", inst, hash32_ptr(inst->session));
 	if (inst->cur_cmd_type)
