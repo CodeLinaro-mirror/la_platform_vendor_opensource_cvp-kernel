@@ -873,6 +873,7 @@ int cvp_dsp_device_init(void)
 		goto register_bail;
 	}
 	mutex_lock(&me->lock);
+	if (me->state == DSP_INVALID)
 	me->state = DSP_UNINIT;
 	mutex_unlock(&me->lock);
 	
