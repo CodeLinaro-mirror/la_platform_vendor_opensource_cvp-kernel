@@ -1,0 +1,1 @@
+SUBSYSTEM=="cvp", KERNEL=="cvp", OWNER="system", GROUP="camera", MODE="0660"
