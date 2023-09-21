@@ -699,7 +699,7 @@ static int msm_cvp_session_process_hfi_fence(struct msm_cvp_inst *inst,
 
 	synx_pkt = &arg->data.hfi_synx_pkt;
 	for(i =0; i< 22 ; i++){
-	dprintk(CVP_ERR, "synx_pkt fence_data[%d]:%x \n ",i, synx_pkt->fence_data[i]);
+	dprintk(CVP_SYNX, "synx_pkt fence_data[%d]:%x \n ",i, synx_pkt->fence_data[i]);
 }
 	if (synx_pkt->fence_data[0] != 0xFEEDFACE) {
 		dprintk(CVP_ERR, "%s deprecated synx path\n", __func__);
