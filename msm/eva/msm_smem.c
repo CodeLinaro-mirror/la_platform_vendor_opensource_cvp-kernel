@@ -407,7 +407,7 @@ int msm_cvp_smem_alloc(size_t size, u32 align, int map_kernel,
 			__func__, (u32)size);
 		return -EINVAL;
 	}
-dprintk(CVP_ERR, " %s with size :%x \n",__func__, (u32)size);
+	dprintk(CVP_MEM, " %s with size :%x \n",__func__, (u32)size);
 	rc = alloc_dma_mem(size, align, map_kernel,
 		(struct msm_cvp_platform_resources *)res, smem);
 
