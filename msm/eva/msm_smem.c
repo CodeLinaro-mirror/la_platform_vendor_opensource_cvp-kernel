@@ -384,7 +384,18 @@ static int free_dma_mem(struct msm_cvp_smem *mem)
 	}
 
 	if (mem->kvaddr) {
-		dma_buf_vunmap(mem->dma_buf, mem->kvaddr);
+		//dma_buf_vunmap(mem->dma_buf, mem->kvaddr);
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 13, 0))
+			dma_buf_vunmap(mem->dma_buf, mem->kvaddr);
+		#else
+			struct dma_buf_map map = { \
+				.vaddr = mem->kvaddr, \
+				.is_iomem = false, \
+		};
+ 
+		if (mem->kvaddr)
+			dma_buf_vunmap(mem->dma_buf, &map);
+		#endif
 		mem->kvaddr = NULL;
 		dma_buf_end_cpu_access(mem->dma_buf, DMA_BIDIRECTIONAL);
 	}

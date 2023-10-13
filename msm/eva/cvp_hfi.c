@@ -1744,7 +1744,7 @@ static int __interface_queues_init(struct iris_hfi_device *dev)
 	mem_addr = &dev->mem_addr;
 	if (!is_iommu_present(dev->res))
 		fw_bias = dev->cvp_hal_data->firmware_base;
-	rc = __smem_alloc(dev, mem_addr, q_size, 1, SMEM_UNCACHED);
+		rc = __smem_alloc(dev, mem_addr, q_size, 1, SMEM_UNCACHED);
 	if (rc) {
 		dprintk(CVP_ERR, "iface_q_table_alloc_fail\n");
 		goto fail_alloc_queue;
