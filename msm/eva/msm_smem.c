@@ -37,6 +37,22 @@ static void * __cvp_dma_buf_vmap(struct dma_buf *dbuf)
 	return dma_map;
 #endif
 }
+
+static void __cvp_dma_buf_vunmap(struct dma_buf *dbuf, void *vaddr)
+{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 13, 0))
+	dma_buf_vunmap(dbuf, vaddr);
+#else
+	struct dma_buf_map map = { \
+			.vaddr = vaddr, \
+			.is_iomem = false, \
+	};
+
+	if (vaddr)
+		dma_buf_vunmap(dbuf, &map);
+#endif
+}
+
 static int msm_dma_get_device_address(struct dma_buf *dbuf, u32 align,
 	dma_addr_t *iova, u32 flags, struct msm_cvp_platform_resources *res,
 	struct cvp_dma_mapping_info *mapping_info)
@@ -384,7 +400,7 @@ static int free_dma_mem(struct msm_cvp_smem *mem)
 	}
 
 	if (mem->kvaddr) {
-		dma_buf_vunmap(mem->dma_buf, mem->kvaddr);
+		__cvp_dma_buf_vunmap(mem->dma_buf, mem->kvaddr);
 		mem->kvaddr = NULL;
 		dma_buf_end_cpu_access(mem->dma_buf, DMA_BIDIRECTIONAL);
 	}
