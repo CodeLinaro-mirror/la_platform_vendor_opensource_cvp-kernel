@@ -2,6 +2,7 @@
 /*
  * Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
  * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include "msm_cvp_common.h"
@@ -14,7 +15,7 @@
 	do { \
 		clear_bit(idx, &inst->dma_cache.usage_bitmap); \
 		dprintk(CVP_MEM, "clear %x bit %d dma_cache bitmap 0x%llx\n", \
-			hash32_ptr(inst->session), smem->bitmap_index, \
+			inst->sess_id, smem->bitmap_index, \
 			inst->dma_cache.usage_bitmap); \
 	} while (0)
 
@@ -22,7 +23,7 @@
 	do { \
 		set_bit(idx, &inst->dma_cache.usage_bitmap); \
 		dprintk(CVP_MEM, "Set %x bit %d dma_cache bitmap 0x%llx\n", \
-			hash32_ptr(inst->session), idx, \
+			inst->sess_id, idx, \
 			inst->dma_cache.usage_bitmap); \
 	} while (0)
 
@@ -36,7 +37,7 @@ void print_smem(u32 tag, const char *str, struct msm_cvp_inst *inst,
 	if (smem->dma_buf) {
 		dprintk(tag,
 			"%s: %x : %s size %d flags %#x iova %#x idx %d ref %d",
-			str, hash32_ptr(inst->session), smem->dma_buf->name,
+			str, inst->sess_id, smem->dma_buf->name,
 			smem->size, smem->flags, smem->device_addr,
 			smem->bitmap_index, smem->refcount);
 	}
@@ -51,13 +52,13 @@ static void print_internal_buffer(u32 tag, const char *str,
 	if (cbuf->smem->dma_buf) {
 		dprintk(tag,
 		"%s: %x : fd %d off %d %s size %d iova %#x",
-		str, hash32_ptr(inst->session), cbuf->fd,
+		str, inst->sess_id, cbuf->fd,
 		cbuf->offset, cbuf->smem->dma_buf->name, cbuf->size,
 		cbuf->smem->device_addr);
 	} else {
 		dprintk(tag,
 		"%s: %x : idx %2d fd %d off %d size %d iova %#x",
-		str, hash32_ptr(inst->session), cbuf->fd,
+		str, inst->sess_id, cbuf->fd,
 		cbuf->offset, cbuf->size, cbuf->smem->device_addr);
 	}
 }
@@ -77,7 +78,7 @@ void print_client_buffer(u32 tag, const char *str,
 
 	dprintk(tag,
 		"%s: %x : idx %2d fd %d off %d size %d type %d flags 0x%x\n",
-		str, hash32_ptr(inst->session), cbuf->index, cbuf->fd,
+		str, inst->sess_id, cbuf->index, cbuf->fd,
 		cbuf->offset, cbuf->size, cbuf->type, cbuf->flags);
 }
 
@@ -581,7 +582,7 @@ void msm_cvp_unmap_frame(struct msm_cvp_inst *inst, u64 ktid)
 
 	ktid &= (FENCE_BIT - 1);
 	dprintk(CVP_MEM, "%s: (%#x) unmap frame %llu\n",
-			__func__, hash32_ptr(inst->session), ktid);
+			__func__, inst->sess_id, ktid);
 
 	found = false;
 	mutex_lock(&inst->frames.lock);
@@ -623,7 +624,7 @@ int msm_cvp_unmap_user_persist(struct msm_cvp_inst *inst,
 			smem = pbuf->smem;
 
 			dprintk(CVP_MEM, "unmap persist: %x %d %d %#x",
-				hash32_ptr(inst->session), pbuf->fd,
+				inst->sess_id, pbuf->fd,
 				pbuf->size, smem->device_addr);
 
 			if (smem->bitmap_index >= MAX_DMABUF_NUMS) {
@@ -1009,7 +1010,7 @@ int cvp_release_arp_buffers(struct msm_cvp_inst *inst)
 		if (buf->ownership == DRIVER) {
 			dprintk(CVP_MEM,
 			"%s: %x : fd %d %s size %d",
-			"free arp", hash32_ptr(inst->session), buf->fd,
+			"free arp", inst->sess_id, buf->fd,
 			smem->dma_buf->name, buf->size);
 			msm_cvp_smem_free(smem);
 			kmem_cache_free(cvp_driver->smem_cache, smem);
@@ -1109,14 +1110,14 @@ int cvp_release_dsp_buffers(struct msm_cvp_inst *inst,
 	if (buf->ownership == DSP) {
 		dprintk(CVP_MEM,
 			"%s: %x : fd %x %s size %d",
-			__func__, hash32_ptr(inst->session), buf->fd,
+			__func__, inst->sess_id, buf->fd,
 			smem->dma_buf->name, buf->size);
 		msm_cvp_smem_free(smem);
 		kmem_cache_free(cvp_driver->smem_cache, smem);
 	} else {
 		dprintk(CVP_ERR,
 			"%s: wrong owner %d %x : fd %x %s size %d",
-			__func__, buf->ownership, hash32_ptr(inst->session),
+			__func__, buf->ownership, inst->sess_id,
 			buf->fd, smem->dma_buf->name, buf->size);
 	}
 
