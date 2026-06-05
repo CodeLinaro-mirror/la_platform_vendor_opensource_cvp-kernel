@@ -55,6 +55,8 @@
 
 #define CVP_KMD_FLUSH_FRAME	(CVP_KMD_CMD_START + 71)
 
+#define CVP_KMD_HFI_DME_FRAME_CMD  (CVP_KMD_CMD_START + 10)
+
 /* flags */
 #define CVP_KMD_FLAG_UNSECURE			0x00000000
 #define CVP_KMD_FLAG_SECURE			0x00000001
@@ -209,6 +211,15 @@ struct cvp_kmd_hfi_synx_packet {
 	};
 };
 
+
+struct cvp_kmd_request_power {
+        unsigned int clock_cycles_a;
+        unsigned int clock_cycles_b;
+        unsigned int ddr_bw;
+        unsigned int sys_cache_bw;
+        unsigned int reserved[8];
+};
+
 /**
  * struct cvp_kmd_arg
  *
@@ -231,6 +242,7 @@ struct cvp_kmd_arg {
 	__u32 buf_num;
 	union cvp_data_t {
 		struct cvp_kmd_session_info session;
+                struct cvp_kmd_request_power req_power;
 		struct cvp_kmd_buffer regbuf;
 		struct cvp_kmd_buffer unregbuf;
 		struct cvp_kmd_send_cmd send_cmd;
@@ -241,9 +253,5 @@ struct cvp_kmd_arg {
 		struct cvp_kmd_session_control session_ctrl;
 		__u64 frame_id;
 	} data;
-};
-
-struct cvp_kmd_request_power {
-	__u32 deprecated;
 };
 #endif
