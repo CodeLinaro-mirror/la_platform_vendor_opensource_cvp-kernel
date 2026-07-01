@@ -50,6 +50,10 @@ static struct msm_cvp_common_data default_common_data[] = {
 
 static struct msm_cvp_common_data sm8250_common_data[] = {
 	{
+		.key = "qcom,auto-pil",
+		.value = 1,
+	},
+	{
 		.key = "qcom,never-unload-fw",
 		.value = 1,
 	},

@@ -8,7 +8,6 @@
 #include <linux/debugfs.h>
 #include <linux/delay.h>
 #include "msm_cvp_internal.h"
-//#include "trace/events/msm_cvp_events.h"
 #include <media/msm_cvp_events.h>
 
 
@@ -65,6 +64,7 @@ extern bool msm_cvp_cacheop_disabled;
 extern int msm_cvp_clock_voting;
 extern bool msm_cvp_syscache_disable;
 extern bool msm_cvp_dsp_disable;
+extern bool msm_cvp_dcvs_disable;
 
 #define dprintk(__level, __fmt, arg...)	\
 	do { \

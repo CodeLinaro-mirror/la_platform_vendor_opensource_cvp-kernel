@@ -26,6 +26,7 @@ bool msm_cvp_cacheop_disabled = !true;
 int msm_cvp_clock_voting = !1;
 bool msm_cvp_syscache_disable = !true;
 bool msm_cvp_dsp_disable = !true;
+bool msm_cvp_dcvs_disable = !true;
 
 #define MAX_DBG_BUF_SIZE 4096
 
@@ -229,7 +230,6 @@ DEFINE_DEBUGFS_ATTRIBUTE(cvp_pwr_fops, cvp_power_get, cvp_power_set, "%llu\n");
 
 struct dentry *msm_cvp_debugfs_init_drv(void)
 {
-	//bool ok = false;
 	struct dentry *dir = NULL;
 
 	dir = debugfs_create_dir("msm_cvp", NULL);
@@ -237,37 +237,7 @@ struct dentry *msm_cvp_debugfs_init_drv(void)
 		dir = NULL;
 		goto failed_create_dir;
 	}
-/*
-#define __debugfs_create(__type, __name, __value) ({                          \
-	struct dentry *f = debugfs_create_##__type(__name, 0644,	\
-		dir, __value);                                                \
-	if (IS_ERR_OR_NULL(f)) {                                              \
-		dprintk(CVP_ERR, "Failed creating debugfs file '%pd/%s'\n",  \
-			dir, __name);                                         \
-		f = NULL;                                                     \
-	}                                                                     \
-	f;                                                                    \
-})
 
-	ok =
-	__debugfs_create(x32, "debug_level", &msm_cvp_debug) &&
-	__debugfs_create(x32, "fw_level", &msm_cvp_fw_debug) &&
-	__debugfs_create(u32, "fw_debug_mode", &msm_cvp_fw_debug_mode) &&
-	__debugfs_create(bool, "fw_coverage", &msm_cvp_fw_coverage) &&
-	__debugfs_create(u32, "fw_low_power_mode",
-			&msm_cvp_fw_low_power_mode) &&
-	__debugfs_create(u32, "debug_output", &msm_cvp_debug_out) &&
-	__debugfs_create(bool, "disable_thermal_mitigation",
-			&msm_cvp_thermal_mitigation_disabled) &&
-	__debugfs_create(bool, "disable_cacheop",
-			&msm_cvp_cacheop_disabled) &&
-	__debugfs_create(bool, "disable_cvp_syscache",
-			&msm_cvp_syscache_disable);
-
-#undef __debugfs_create
-*/
-//Akhil
-/* For functions that return struct dentry* */
 #define __debugfs_create_ptr(__type, __name, __value) ({                        \
         struct dentry *f = debugfs_create_##__type(__name, 0644, dir, __value); \
         if (IS_ERR_OR_NULL(f)) {                                                \
@@ -284,8 +254,8 @@ struct dentry *msm_cvp_debugfs_init_drv(void)
 
 
 
-//ok =
-    __debugfs_create_void(x32, "debug_level", &msm_cvp_debug); 
+
+    __debugfs_create_void(x32, "debug_level", &msm_cvp_debug);
     __debugfs_create_void(x32, "fw_level", &msm_cvp_fw_debug);
 
 __debugfs_create_void(u32, "fw_debug_mode", &msm_cvp_fw_debug_mode);
@@ -300,9 +270,7 @@ __debugfs_create_void(bool, "disable_cvp_syscache", &msm_cvp_syscache_disable);
 #undef __debugfs_create_ptr
 #undef __debugfs_create_void
 
-//Akhil
-	/*if (!ok)
-		goto failed_create_dir;*/
+
 
 	debugfs_create_file("cvp_power", 0644, dir, NULL, &cvp_pwr_fops);
 

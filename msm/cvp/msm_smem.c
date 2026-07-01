@@ -261,6 +261,7 @@ static int alloc_dma_mem(size_t size, u32 align, u32 flags, int map_kernel,
 
 	align = ALIGN(align, SZ_4K);
 	size = ALIGN(size, SZ_4K);
+	mem->flags = flags;
 
 	if (is_iommu_present(res)) {
 		heap = dma_heap_find("qcom,system");

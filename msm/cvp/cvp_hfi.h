@@ -190,6 +190,12 @@ struct cvp_hfi_msg_sys_session_abort_done_packet {
 	u32 error_type;
 };
 
+struct cvp_sys_property_packet_hdr {
+	u32 size;
+	u32 packet_type;
+	u32 num_properties;
+};
+
 struct cvp_hfi_msg_sys_property_info_packet {
 	u32 size;
 	u32 packet_type;

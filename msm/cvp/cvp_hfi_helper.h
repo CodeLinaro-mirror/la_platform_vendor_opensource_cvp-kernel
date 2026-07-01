@@ -198,7 +198,7 @@ struct cvp_hfi_cmd_sys_set_resource_packet {
 	u32 packet_type;
 	u32 resource_handle;
 	u32 resource_type;
-	u32 rg_resource_data[1];
+	u32 rg_resource_data[];
 };
 
 struct cvp_hfi_cmd_sys_release_resource_packet {
@@ -212,14 +212,14 @@ struct cvp_hfi_cmd_sys_set_property_packet {
 	u32 size;
 	u32 packet_type;
 	u32 num_properties;
-	u32 rg_property_data[1];
+	u32 rg_property_data[];
 };
 
 struct cvp_hfi_cmd_sys_get_property_packet {
 	u32 size;
 	u32 packet_type;
 	u32 num_properties;
-	u32 rg_property_data[1];
+	u32 rg_property_data[];
 };
 
 enum HFI_SESSION_TYPE {
@@ -252,7 +252,7 @@ struct cvp_hfi_cmd_sys_set_buffers_packet {
 	u32 buffer_type;
 	u32 buffer_size;
 	u32 num_buffers;
-	u32 rg_buffer_addr[1];
+	u32 rg_buffer_addr[];
 };
 
 struct cvp_hfi_cmd_sys_set_ubwc_config_packet_type {
@@ -279,7 +279,7 @@ struct cvp_hfi_cmd_session_set_property_packet {
 	u32 packet_type;
 	u32 session_id;
 	u32 num_properties;
-	u32 rg_property_data[1];
+	u32 rg_property_data[];
 };
 
 struct cvp_hfi_client {
@@ -370,7 +370,7 @@ struct cvp_hfi_cmd_session_sync_process_packet {
 	u32 packet_type;
 	u32 session_id;
 	u32 sync_id;
-	u32 rg_data[1];
+	u32 rg_data[];
 };
 
 struct cvp_hfi_msg_event_notify_packet {
@@ -380,7 +380,7 @@ struct cvp_hfi_msg_event_notify_packet {
 	u32 event_id;
 	u32 event_data1;
 	u32 event_data2;
-	u32 rg_ext_event_data[1];
+	u32 rg_ext_event_data[];
 };
 
 struct cvp_hfi_msg_session_op_cfg_packet {
@@ -398,7 +398,7 @@ struct cvp_hfi_msg_sys_init_done_packet {
 	u32 packet_type;
 	u32 error_type;
 	u32 num_properties;
-	u32 rg_property_data[1];
+	u32 rg_property_data[];
 };
 
 struct cvp_hfi_msg_sys_pc_prep_done_packet {
@@ -420,7 +420,7 @@ struct cvp_hfi_msg_sys_session_init_done_packet {
 	u32 session_id;
 	u32 error_type;
 	u32 num_properties;
-	u32 rg_property_data[1];
+	u32 rg_property_data[];
 };
 
 struct cvp_hfi_msg_sys_session_end_done_packet {
@@ -446,7 +446,7 @@ struct cvp_hfi_msg_sys_debug_packet {
 	u32 msg_size;
 	u32 time_stamp_hi;
 	u32 time_stamp_lo;
-	u8 rg_msg_data[1];
+	u8 rg_msg_data[];
 };
 
 struct cvp_hfi_packet_header {
@@ -456,7 +456,7 @@ struct cvp_hfi_packet_header {
 
 struct cvp_hfi_sfr_struct {
 	u32 bufSize;
-	u8 rg_data[1];
+	u8 rg_data[];
 };
 
 struct cvp_hfi_cmd_sys_test_ssr_packet {

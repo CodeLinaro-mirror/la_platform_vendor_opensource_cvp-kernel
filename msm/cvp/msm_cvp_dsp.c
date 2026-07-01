@@ -157,13 +157,7 @@ static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
 {
 	struct cvp_dsp_apps *me = &gfa_cv;
 
-	/*if (strcmp(rpdev->dev.parent->of_node->name, "cdsp")) {
-		dprintk(CVP_ERR,
-			"%s: Failed to probe rpmsg device.Node name:%s\n",
-			__func__, rpdev->dev.parent->of_node->name);
-		return -EINVAL;
-	}
-*/
+
 const char *edge_name = NULL;
 int ret = 0;
 
@@ -708,6 +702,7 @@ void cvp_dsp_send_hfi_queue(void)
 	}
 
 	if (me->state != DSP_PROBED && me->state != DSP_INACTIVE)
+		dprintk(CVP_DSP, "%s: Either DSP is not probed or is not in proper state. me->state = %d\n", __func__, me->state);
 		goto exit;
 
 	rc = cvp_hyp_assign_to_dsp(addr, size);
@@ -853,7 +848,6 @@ wait_dsp:
 	goto wait_dsp;
 exit:
 	dprintk(CVP_DBG, "dsp thread exit\n");
-	//do_exit(rc);
         return rc;
 }
 
