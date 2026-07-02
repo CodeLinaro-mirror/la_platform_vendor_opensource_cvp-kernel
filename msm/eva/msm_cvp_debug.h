@@ -15,6 +15,7 @@
 #endif
 
 #define CVP_DBG_TAG CVP_DBG_LABEL ": %4s: "
+#define CVP_PID_TAG "[%d,%d] " CVP_DBG_LABEL ": %4s: "
 
 /* To enable messages OR these values and
  * echo the result to debugfs file.
