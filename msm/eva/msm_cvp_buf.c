@@ -608,7 +608,8 @@ int msm_cvp_unmap_user_persist(struct msm_cvp_inst *inst,
 	u64 ktid;
 	int rc = 0;
 	struct msm_cvp_smem *smem = NULL;
-
+	dprintk(CVP_ERR, "%s: Unsupported request\n", __func__);
+	return -EINVAL;
 	if (!offset || !buf_num)
 		return rc;
 
