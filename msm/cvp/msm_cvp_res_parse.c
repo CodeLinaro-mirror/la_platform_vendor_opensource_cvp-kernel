@@ -726,7 +726,7 @@ int cvp_read_platform_resources_from_drv_data(
 
 	res->auto_pil = find_key_value(platform_data,
 			"qcom,auto-pil");
-
+	
 	res->max_load = find_key_value(platform_data,
 			"qcom,max-hw-load");
 

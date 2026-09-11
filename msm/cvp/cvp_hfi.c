@@ -1195,7 +1195,7 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 
 	dprintk(CVP_CORE, "Controller GDSCR value: %x \n", reg_gdsc);
 
-	ctrl_init_val = BIT(0) | BIT(1) | BIT(3);
+	ctrl_init_val = BIT(0) |  BIT(3);
 	__write_register(device, CVP_CTRL_INIT, ctrl_init_val);
 	while (!ctrl_status && count < max_tries) {
 		ctrl_status = __read_register(device, CVP_CTRL_STATUS);
@@ -4398,8 +4398,7 @@ static int __power_off_core(struct iris_hfi_device *device)
 {
 
 	__disable_regulator(device, "cvp-core");
-	msm_cvp_disable_unprepare_clk(device, "core_clk");
-	msm_cvp_disable_unprepare_clk(device, "video_cc_mvs1_clk_src");
+	msm_cvp_disable_unprepare_clk(device, "core_clk");	
 	return 0;
 }
 
