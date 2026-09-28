@@ -985,3 +985,14 @@ int msm_cvp_dma_buf_vmap(struct dma_buf *dmabuf, struct cvp_dma_buf_vmap *vmap)
 
 	return ret;
 }
+
+void msm_cvp_dma_buf_vunmap(struct dma_buf *dmabuf, struct cvp_dma_buf_vmap *vmap)
+{
+	#if (KERNEL_VERSION(6, 2, 0) <= LINUX_VERSION_CODE)
+		dma_buf_vunmap_unlocked(dmabuf, &vmap->map);
+	#elif (KERNEL_VERSION(5, 11, 0) <= LINUX_VERSION_CODE)
+		dma_buf_vunmap(dmabuf, &vmap->map);
+	#else
+		dma_buf_vunmap(dmabuf, vmap->vaddr);
+	#endif
+}

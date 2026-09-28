@@ -785,7 +785,6 @@ int cvp_read_platform_resources_from_dt(
 	res->register_size = kres ? (kres->end + 1 - kres->start) : -1;
 
 	kres = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-	//res->irq = kres ? kres->start : -1;
 	res->irq = platform_get_irq(pdev, 0);
 
 	rc = msm_cvp_load_fw_name(res);

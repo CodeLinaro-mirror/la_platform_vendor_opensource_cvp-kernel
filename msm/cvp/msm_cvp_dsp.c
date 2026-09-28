@@ -705,7 +705,6 @@ void cvp_dsp_send_hfi_queue(void)
   		goto exit;
   	}
   
-  	dprintk(CVP_DSP, "DSP probed successfully, me->state = %d\n", me->state);
 	rc = cvp_hyp_assign_to_dsp(addr, size);
 	if (rc) {
 		dprintk(CVP_ERR, "%s: cvp_hyp_assign_to_dsp. rc=%d\n",
