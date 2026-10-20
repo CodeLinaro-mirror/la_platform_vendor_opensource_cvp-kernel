@@ -983,7 +983,6 @@ static void __set_registers(struct iris_hfi_device *device)
 
 	/* CVP NOC QoS Settings */
 
-
 	__write_register(device, CVP_CPU_CS_AXI4_QOS,
 				0x48);
 	__write_register(device, CVP_NOC_PRIORITYLUT_LOW,

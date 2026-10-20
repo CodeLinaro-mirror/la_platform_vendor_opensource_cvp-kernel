@@ -9,12 +9,21 @@
 #include <linux/firmware/qcom/qcom_scm.h>
 #include <soc/qcom/secure_buffer.h>
 
+#ifdef CONFIG_QCOM_SECURE_BUFFER
+#include <soc/qcom/secure_buffer.h>
+#endif
 #include <soc/qcom/of_common.h>
 #include "msm_cvp_dsp.h"
 #include "msm_cvp_internal.h"
 
 struct cvp_dsp_apps gfa_cv;
-
+#ifdef CONFIG_QCOM_SECURE_BUFFER
+static int hlosVM[HLOS_VM_NUM] = {VMID_HLOS};
+static int dspVM[DSP_VM_NUM] = {VMID_HLOS, VMID_CDSP_Q6};
+static int dspVMperm[DSP_VM_NUM] = { PERM_READ | PERM_WRITE | PERM_EXEC,
+				PERM_READ | PERM_WRITE | PERM_EXEC };
+static int hlosVMperm[HLOS_VM_NUM] = { PERM_READ | PERM_WRITE | PERM_EXEC };
+#endif
 static int cvp_reinit_dsp(void);
 
 static int cvp_dsp_send_cmd(struct cvp_dsp_cmd_msg *cmd, uint32_t len)
@@ -170,6 +179,66 @@ static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
 			__func__, edge_name);
 		return -EINVAL;
 	}
+	if (!me->hyp_assigned) {
+#ifdef CONFIG_QCOM_SECURE_BUFFER
+		rc = hyp_assign_phys(addr, size, hlosVM, HLOS_VM_NUM, dspVM,
+			dspVMperm, DSP_VM_NUM);
+		if (rc) {
+			dprintk(CVP_ERR, "%s failed. rc=%d\n", __func__, rc);
+			return rc;
+		}
+		me->addr = addr;
+		me->size = size;
+		me->hyp_assigned = true;
+#endif
+	}
+
+	return rc;
+}
+
+static int cvp_hyp_assign_from_dsp(void)
+{
+	int rc = 0;
+	struct cvp_dsp_apps *me = &gfa_cv;
+
+	if (me->hyp_assigned) {
+#ifdef CONFIG_QCOM_SECURE_BUFFER
+		rc = hyp_assign_phys(me->addr, me->size, dspVM, DSP_VM_NUM,
+				hlosVM, hlosVMperm, HLOS_VM_NUM);
+		if (rc) {
+			dprintk(CVP_ERR, "%s failed. rc=%d\n", __func__, rc);
+			return rc;
+		}
+		me->addr = 0;
+		me->size = 0;
+		me->hyp_assigned = false;
+#endif
+	}
+
+	return rc;
+}
+
+static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
+{
+	struct cvp_dsp_apps *me = &gfa_cv;
+
+
+const char *edge_name = NULL;
+int ret = 0;
+
+ret = of_property_read_string(rpdev->dev.parent->of_node,
+		"label", &edge_name);
+if (ret) {
+	dprintk(CVP_ERR, "glink edge 'label' not found in node\n");
+	return ret;
+}
+
+if (strcmp(edge_name, "cdsp")) {
+	dprintk(CVP_ERR,
+		"%s: Failed to probe rpmsg device.Node name:%s\n",
+		__func__, edge_name);
+	return -EINVAL;
+}
 
 
 	mutex_lock(&me->lock);
@@ -882,6 +951,7 @@ int cvp_dsp_device_init(void)
   		me->state = DSP_UNINIT;
   	mutex_unlock(&me->lock);
 
+	me->state = DSP_UNINIT;
 	me->dsp_thread = kthread_run(cvp_dsp_thread, me, tname);
 	if (!me->dsp_thread) {
 		dprintk(CVP_ERR, "%s create %s fail", __func__, tname);
