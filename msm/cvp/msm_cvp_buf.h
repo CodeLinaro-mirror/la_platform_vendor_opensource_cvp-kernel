@@ -75,7 +75,6 @@ struct msm_cvp_smem {
 	atomic_t refcount;
 	struct dma_buf *dma_buf;
 	void *kvaddr;
-	struct cvp_dma_buf_vmap vmap;
 	u32 device_addr;
 	dma_addr_t dma_handle;
 	u32 size;
@@ -208,5 +207,4 @@ void msm_cvp_unmap_frame(struct msm_cvp_inst *inst, u64 ktid);
 int msm_cvp_session_deinit_buffers(struct msm_cvp_inst *inst);
 void msm_cvp_print_inst_bufs(struct msm_cvp_inst *inst);
 int msm_cvp_dma_buf_vmap(struct dma_buf *dmabuf, struct cvp_dma_buf_vmap *vmap);
-void msm_cvp_dma_buf_vunmap(struct dma_buf *dmabuf, struct cvp_dma_buf_vmap *vmap);
 #endif

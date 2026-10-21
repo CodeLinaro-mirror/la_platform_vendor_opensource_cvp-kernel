@@ -386,6 +386,7 @@ static int msm_cvp_populate_mem_cdsp(struct device *dev,
 {
 	struct device_node *mem_node;
 	int ret;
+
 	mem_node = of_parse_phandle(dev->of_node, "memory-region", 0);
 	if (mem_node) {
 		ret = of_reserved_mem_device_init_by_idx(dev,
@@ -399,6 +400,7 @@ static int msm_cvp_populate_mem_cdsp(struct device *dev,
 		}
 	}
 	res->mem_cdsp.dev = dev;
+
 	return 0;
 }
 
@@ -410,6 +412,7 @@ static int msm_cvp_populate_bus(struct device *dev,
 	struct bus_info *bus = NULL, *temp_table;
 	u32 range[2];
 	int rc = 0;
+
 	temp_table = krealloc(buses->bus_tbl, sizeof(*temp_table) *
 			(buses->count + 1), GFP_KERNEL);
 	if (!temp_table) {
@@ -726,6 +729,7 @@ int cvp_read_platform_resources_from_drv_data(
 
 	res->auto_pil = find_key_value(platform_data,
 			"qcom,auto-pil");
+
 	res->max_load = find_key_value(platform_data,
 			"qcom,max-hw-load");
 
@@ -1035,6 +1039,7 @@ int cvp_read_context_bank_resources_from_dt(struct platform_device *pdev)
 {
 	struct msm_cvp_core *core;
 	int rc = 0;
+
 	if (!pdev) {
 		dprintk(CVP_ERR, "Invalid platform device\n");
 		return -EINVAL;
@@ -1056,12 +1061,14 @@ int cvp_read_context_bank_resources_from_dt(struct platform_device *pdev)
 		dprintk(CVP_ERR, "Failed to probe context bank\n");
 	else
 		dprintk(CVP_CORE, "Successfully probed context bank\n");
+
 	return rc;
 }
 
 int cvp_read_bus_resources_from_dt(struct platform_device *pdev)
 {
 	struct msm_cvp_core *core;
+
 	if (!pdev) {
 		dprintk(CVP_ERR, "Invalid platform device\n");
 		return -EINVAL;
@@ -1084,6 +1091,7 @@ int cvp_read_bus_resources_from_dt(struct platform_device *pdev)
 int cvp_read_mem_cdsp_resources_from_dt(struct platform_device *pdev)
 {
 	struct msm_cvp_core *core;
+
 	if (!pdev) {
 		dprintk(CVP_ERR, "%s: invalid platform device\n", __func__);
 		return -EINVAL;

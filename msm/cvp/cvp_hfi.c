@@ -1194,7 +1194,7 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 
 	dprintk(CVP_CORE, "Controller GDSCR value: %x \n", reg_gdsc);
 
-	ctrl_init_val = BIT(0);
+	ctrl_init_val = BIT(0) | BIT(1) | BIT(3);
 	__write_register(device, CVP_CTRL_INIT, ctrl_init_val);
 	while (!ctrl_status && count < max_tries) {
 		ctrl_status = __read_register(device, CVP_CTRL_STATUS);
@@ -3251,6 +3251,7 @@ static int __init_regs_and_interrupts(struct iris_hfi_device *device,
 {
 	struct cvp_hal_data *hal = NULL;
 	int rc = 0;
+
 	rc = __check_core_registered(device, res->firmware_base,
 			(u8 *)(uintptr_t)res->register_base,
 			res->register_size, res->irq);
@@ -3292,7 +3293,6 @@ static int __init_regs_and_interrupts(struct iris_hfi_device *device,
 		"firmware_base = %pa, register_base = %pa, register_size = %d\n",
 		&res->firmware_base, &res->register_base,
 		res->register_size);
-
 	return rc;
 
 error_irq_fail:
@@ -3897,6 +3897,8 @@ static int __disable_regulator(struct iris_hfi_device *device,
 {
 	struct regulator_info *rinfo;
 
+	dprintk(CVP_PWR, "Disabling regulators\n");
+
 	iris_hfi_for_each_regulator_reverse(device, rinfo) {
 		if (strcmp(rinfo->name, name))
 			continue;
@@ -4397,7 +4399,8 @@ static int __power_off_core(struct iris_hfi_device *device)
 {
 
 	__disable_regulator(device, "cvp-core");
-	msm_cvp_disable_unprepare_clk(device, "core_clk");	
+	msm_cvp_disable_unprepare_clk(device, "core_clk");
+	msm_cvp_disable_unprepare_clk(device, "video_cc_mvs1_clk_src");
 	return 0;
 }
 
@@ -4771,12 +4774,14 @@ static struct iris_hfi_device *__add_device(u32 device_id,
 {
 	struct iris_hfi_device *hdevice = NULL;
 	int rc = 0;
+
 	if (!res || !callback) {
 		dprintk(CVP_ERR, "Invalid Parameters\n");
 		return NULL;
 	}
 
 	dprintk(CVP_INFO, "%s: device_id: %d\n", __func__, device_id);
+
 	hdevice = kzalloc(sizeof(*hdevice), GFP_KERNEL);
 	if (!hdevice) {
 		dprintk(CVP_ERR, "failed to allocate new device\n");
@@ -4847,6 +4852,7 @@ static struct iris_hfi_device *__get_device(u32 device_id,
 		dprintk(CVP_ERR, "Invalid params: %pK %pK\n", res, callback);
 		return NULL;
 	}
+
 	return __add_device(device_id, res, callback);
 }
 
@@ -4926,12 +4932,14 @@ int cvp_iris_hfi_initialize(struct cvp_hfi_device *hdev, u32 device_id,
 		hfi_cmd_response_callback callback)
 {
 	int rc = 0;
+
 	if (!hdev || !res || !callback) {
 		dprintk(CVP_ERR, "Invalid params: %pK %pK %pK\n",
 			hdev, res, callback);
 		rc = -EINVAL;
 		goto err_iris_hfi_init;
 	}
+
 	hdev->hfi_device_data = __get_device(device_id, res, callback);
 
 	if (IS_ERR_OR_NULL(hdev->hfi_device_data)) {
