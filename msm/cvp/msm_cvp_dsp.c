@@ -6,6 +6,9 @@
 #include <linux/rpmsg.h>
 #include <linux/of_platform.h>
 #include <linux/of_fdt.h>
+#include <linux/firmware/qcom/qcom_scm.h>
+#include <soc/qcom/secure_buffer.h>
+
 #ifdef CONFIG_QCOM_SECURE_BUFFER
 #include <soc/qcom/secure_buffer.h>
 #endif
@@ -114,6 +117,68 @@ static int cvp_hyp_assign_to_dsp(uint64_t addr, uint32_t size)
 	int rc = 0;
 	struct cvp_dsp_apps *me = &gfa_cv;
 
+  	uint64_t hlosVMid = BIT(VMID_HLOS);
+  	struct qcom_scm_vmperm dspVM[DSP_VM_NUM] = {
+  		{VMID_HLOS, PERM_READ | PERM_WRITE | PERM_EXEC},
+  		{VMID_CDSP_Q6, PERM_READ | PERM_WRITE | PERM_EXEC}
+  	};
+  	if (!me->hyp_assigned) {
+  		rc = qcom_scm_assign_mem(addr, size, &hlosVMid, dspVM, DSP_VM_NUM);
+  		if (rc) {
+  			dprintk(CVP_ERR, "%s failed. rc=%d\n", __func__, rc);
+  			return rc;
+  		}
+  		me->addr = addr;
+  		me->size = size;
+  		me->hyp_assigned = true;
+  	}
+  	return rc;
+  }
+  
+  static int cvp_hyp_assign_from_dsp(void)
+  {
+  	int rc = 0;
+  	struct cvp_dsp_apps *me = &gfa_cv;
+  
+  	uint64_t dspVMids = BIT(VMID_HLOS) | BIT(VMID_CDSP_Q6);
+  	struct qcom_scm_vmperm hlosVM[HLOS_VM_NUM] = {
+  		{VMID_HLOS, PERM_READ | PERM_WRITE | PERM_EXEC},
+  	};
+  	if (me->hyp_assigned) {
+  		rc = qcom_scm_assign_mem(me->addr, me->size, &dspVMids, hlosVM, HLOS_VM_NUM);
+  		if (rc) {
+  			dprintk(CVP_ERR, "%s failed. rc=%d\n", __func__, rc);
+  			return rc;
+  		}
+  		me->addr = 0;
+  		me->size = 0;
+  		me->hyp_assigned = false;
+  	}
+  	return rc;
+  }
+/*From LA.3.0 code ref*/
+static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
+{
+	struct cvp_dsp_apps *me = &gfa_cv;
+
+
+	const char *edge_name = NULL;
+	int ret = 0;
+
+	ret = of_property_read_string(rpdev->dev.parent->of_node,
+		"label", &edge_name);
+	if (ret) {
+		dprintk(CVP_ERR, "glink edge 'label' not found in node\n");
+		return ret;
+	}
+
+
+	if (strcmp(edge_name, "cdsp")) {
+		dprintk(CVP_ERR,
+			"%s: Failed to probe rpmsg device.Node name:%s\n",
+			__func__, edge_name);
+		return -EINVAL;
+	}
 	if (!me->hyp_assigned) {
 #ifdef CONFIG_QCOM_SECURE_BUFFER
 		rc = hyp_assign_phys(addr, size, hlosVM, HLOS_VM_NUM, dspVM,
@@ -174,6 +239,7 @@ if (strcmp(edge_name, "cdsp")) {
 		__func__, edge_name);
 	return -EINVAL;
 }
+
 
 	mutex_lock(&me->lock);
 	me->chan = rpdev;
@@ -701,10 +767,13 @@ void cvp_dsp_send_hfi_queue(void)
 		goto exit;
 	}
 
-	if (me->state != DSP_PROBED && me->state != DSP_INACTIVE)
-		dprintk(CVP_DSP, "%s: Either DSP is not probed or is not in proper state. me->state = %d\n", __func__, me->state);
-		goto exit;
-
+	if (me->state != DSP_PROBED && me->state != DSP_INACTIVE) {
+  		dprintk(CVP_DSP,
+  			"%s: DSP is not probed or  not in proper state. me->state = %d\n",
+  			__func__, me->state);
+  		goto exit;
+  	}
+  
 	rc = cvp_hyp_assign_to_dsp(addr, size);
 	if (rc) {
 		dprintk(CVP_ERR, "%s: cvp_hyp_assign_to_dsp. rc=%d\n",
@@ -876,6 +945,12 @@ int cvp_dsp_device_init(void)
 		goto register_bail;
 	}
 	snprintf(tname, sizeof(tname), "cvp-dsp-thread");
+
+	mutex_lock(&me->lock);
+  	if (me->state == DSP_INVALID)
+  		me->state = DSP_UNINIT;
+  	mutex_unlock(&me->lock);
+
 	me->state = DSP_UNINIT;
 	me->dsp_thread = kthread_run(cvp_dsp_thread, me, tname);
 	if (!me->dsp_thread) {
