@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef __CVP_HFI_IO_H__
@@ -231,9 +232,11 @@
 #define CVP_AON_WRAPPER_CVP_NOC_LPI_CONTROL	(CVP_AON_BASE_OFFS + 0x8)
 #define CVP_AON_WRAPPER_CVP_NOC_LPI_STATUS	(CVP_AON_BASE_OFFS + 0xC)
 
-#define CVP_CC_BASE_OFFS			0x000F0000
-#define CVP_CC_MVS0C_GDSCR			(CVP_CC_BASE_OFFS + 0xBF8)
-#define CVP_CC_MVS1C_GDSCR			(CVP_CC_BASE_OFFS + 0xC98)
-#define CVP_CC_MVS1C_CBCR			(CVP_CC_BASE_OFFS + 0xCD4)
-#define CVP_CC_MVS1_GDSCR			(CVP_CC_BASE_OFFS + 0xD98)
+#define CVP_CC_BASE_OFFS			0x000F8000
+#define CVP_CC_MVS0C_GDSCR			(CVP_CC_BASE_OFFS + 0x084)
+#define CVP_CC_MVS1C_GDSCR			(CVP_CC_BASE_OFFS + 0x124)
+#define CVP_CC_MVS1C_CBCR			(CVP_CC_BASE_OFFS + 0x160)
+#define CVP_CC_MVS1_GDSCR			(CVP_CC_BASE_OFFS + 0x244)
+#define CVP_CC_MVS1_CBCR            (CVP_CC_BASE_OFFS + 0x260)
+#define CVP_GCC_VIDEO_AXI1_CBCR     (0x32020)
 #endif

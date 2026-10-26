@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/iommu.h>
@@ -133,6 +134,26 @@ static int msm_cvp_load_ipcc_regs(struct msm_cvp_platform_resources *res)
 
 	return ret;
 }
+
+static int msm_cvp_load_gcc_regs(struct msm_cvp_platform_resources *res)
+{
+	int ret = 0;
+	unsigned int reg_config[2];
+	struct platform_device *pdev = res->pdev;
+
+	ret = of_property_read_u32_array(pdev->dev.of_node, "qcom,gcc-reg",
+				reg_config, 2);
+	if (ret) {
+		dprintk(CVP_WARN, "No gcc reg configured: %d\n", ret);
+		return ret;
+	}
+
+	res->gcc_reg_base = reg_config[0];
+	res->gcc_reg_size = reg_config[1];
+
+	return ret;
+}
+
 
 static int msm_cvp_load_reg_table(struct msm_cvp_platform_resources *res)
 {
@@ -816,6 +837,7 @@ int cvp_read_platform_resources_from_dt(
 	if (rc){
 		dprintk(CVP_ERR, "Failed to load IPCC regs: %d\n", rc);
 	}
+	rc = msm_cvp_load_gcc_regs(res);
 
 	rc = msm_cvp_load_regulator_table(res);
 	if (rc) {

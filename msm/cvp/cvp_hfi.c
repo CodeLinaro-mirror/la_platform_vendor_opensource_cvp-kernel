@@ -1173,8 +1173,7 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 {
 	int rc = 0, loop = 10;
 	u32 ctrl_init_val = 0, ctrl_status = 0, count = 0, max_tries = 1000;
-	u32 reg_gdsc = 0;
-
+	u32 reg_gdsc;
 
 	/*
 	 * Hand off control of regulators to h/w _after_ enabling clocks.
@@ -1185,16 +1184,25 @@ static inline int __boot_firmware(struct iris_hfi_device *device)
 	if (__enable_hw_power_collapse(device))
 		dprintk(CVP_ERR, "Failed to enabled inter-frame PC\n");
 
-	reg_gdsc = __read_register(device, CVP_CC_MVS1C_GDSCR);
+	while (loop) {
+		reg_gdsc = __read_register(device, CVP_CC_MVS1_GDSCR);
+		if (reg_gdsc & 0x80000000) {
+			usleep_range(100, 200);
+			loop--;
+		} else {
+			break;
+		}
+	}
 
 	if (!loop)
 		dprintk(CVP_ERR, "Fail to power off CORE GDSCR: %x, loop count %d \n", reg_gdsc, loop);
 	else
 		dprintk(CVP_CORE, "Power off CORE GDSCR Success: %x, loop count %d \n", reg_gdsc, loop);
 
+	reg_gdsc = __read_register(device, CVP_CC_MVS1C_GDSCR);
 	dprintk(CVP_CORE, "Controller GDSCR value: %x \n", reg_gdsc);
 
-	ctrl_init_val = BIT(0) | BIT(1) | BIT(3);
+	ctrl_init_val = BIT(0) | BIT(3);
 	__write_register(device, CVP_CTRL_INIT, ctrl_init_val);
 	while (!ctrl_status && count < max_tries) {
 		ctrl_status = __read_register(device, CVP_CTRL_STATUS);
@@ -1621,7 +1629,6 @@ static int __interface_dsp_queues_init(struct iris_hfi_device *dev)
 	mem_data->device_addr = iova;
 	mem_data->dma_handle = dma_handle;
 	mem_data->size = q_size;
-	mem_data->ion_flags = 0;
 	mem_data->mapping_info.cb_info = cb;
 
 	if (!is_iommu_present(dev->res))
@@ -2741,6 +2748,8 @@ static int __power_collapse(struct iris_hfi_device *device, bool force)
 	else if (rc)
 		goto skip_power_off;
 
+	__flush_debug_queue(device, device->raw_packet);
+
 	pc_ready = __read_register(device, CVP_CTRL_STATUS) &
 		CVP_CTRL_STATUS_PC_READY;
 	if (!pc_ready) {
@@ -2781,13 +2790,19 @@ static int __power_collapse(struct iris_hfi_device *device, bool force)
 
 		if (count == max_tries) {
 			dprintk(CVP_ERR,
-					"Skip PC. Core is not in right state (%#x, %#x)\n",
-					wfi_status, pc_ready);
+				"Skip PC. Core is not ready (%#x, %#x)\n",
+				wfi_status, pc_ready);
+			goto skip_power_off;
+		}
+	} else {
+		wfi_status = __read_register(device, CVP_WRAPPER_CPU_STATUS);
+		if (!(wfi_status & BIT(0))) {
+			dprintk(CVP_WARN,
+				"Skip PC as wfi_status (%#x) bit not set\n",
+				wfi_status);
 			goto skip_power_off;
 		}
 	}
-
-	__flush_debug_queue(device, device->raw_packet);
 
 	rc = __suspend(device);
 	if (rc)
@@ -3278,6 +3293,16 @@ static int __init_regs_and_interrupts(struct iris_hfi_device *device,
 			"could not map reg addr %pa of size %d\n",
 			&res->register_base, res->register_size);
 		goto error_irq_fail;
+	}
+
+	if (res->gcc_reg_base) {
+		hal->gcc_reg_base = devm_ioremap(&res->pdev->dev,
+				res->gcc_reg_base, res->gcc_reg_size);
+		hal->gcc_reg_size = res->gcc_reg_size;
+		if (!hal->gcc_reg_base)
+			dprintk(CVP_ERR,
+				"could not map gcc reg addr %pa of size %d\n",
+				&res->gcc_reg_base, res->gcc_reg_size);
 	}
 
 	device->cvp_hal_data = hal;
@@ -4397,10 +4422,22 @@ static int __power_off_controller(struct iris_hfi_device *device)
 
 static int __power_off_core(struct iris_hfi_device *device)
 {
+	u32 config, value = 0;
+	value = __read_register(device, CVP_CC_MVS1_GDSCR);
+	dprintk(CVP_PWR, "Driver controls Core power off now\n");
+	/*
+	 * check to make sure core clock branch enabled else
+	 * we cannot read core idle register
+	 */
+	config = __read_register(device, CVP_WRAPPER_CORE_CLOCK_CONFIG);
+	if (config) {
+		dprintk(CVP_PWR,
+		"core clock config not enabled, enable it to access core\n");
+		__write_register(device, CVP_WRAPPER_CORE_CLOCK_CONFIG, 0);
+	}
 
 	__disable_regulator(device, "cvp-core");
 	msm_cvp_disable_unprepare_clk(device, "core_clk");
-	msm_cvp_disable_unprepare_clk(device, "video_cc_mvs1_clk_src");
 	return 0;
 }
 

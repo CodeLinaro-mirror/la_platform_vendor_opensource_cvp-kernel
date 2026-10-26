@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/dma-buf.h>
@@ -252,7 +253,6 @@ static int alloc_dma_mem(size_t size, u32 align, u32 flags, int map_kernel,
 	struct mem_buf_lend_kernel_arg arg;
 	int vmids[1];
 	int perms[1];
-	struct cvp_dma_buf_vmap vmap = {0};
 
 	if (!res) {
 		dprintk(CVP_ERR, "%s: NULL res\n", __func__);
@@ -324,8 +324,9 @@ static int alloc_dma_mem(size_t size, u32 align, u32 flags, int map_kernel,
 
 	if (map_kernel) {
 		dma_buf_begin_cpu_access(dbuf, DMA_BIDIRECTIONAL);
-		msm_cvp_dma_buf_vmap(dbuf, &vmap);
-		mem->kvaddr = vmap.vaddr;
+		msm_cvp_dma_buf_vmap(dbuf, &mem->vmap);
+
+		mem->kvaddr = mem->vmap.vaddr;
 		if (!mem->kvaddr) {
 			dprintk(CVP_ERR,
 				"Failed to map shared mem in kernel\n");
@@ -362,7 +363,7 @@ static int free_dma_mem(struct msm_cvp_smem *mem)
 	}
 
 	if (mem->kvaddr) {
-		dma_buf_vunmap(mem->dma_buf, mem->kvaddr);
+		msm_cvp_dma_buf_vunmap(mem->dma_buf, &mem->vmap);
 		mem->kvaddr = NULL;
 		dma_buf_end_cpu_access(mem->dma_buf, DMA_BIDIRECTIONAL);
 	}

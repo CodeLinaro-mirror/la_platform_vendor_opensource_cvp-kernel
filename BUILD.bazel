@@ -36,3 +36,7 @@ load(":lahaina.bzl", "define_lahaina")
 define_lahaina()
 
 
+load(":waipio.bzl", "define_waipio")
+define_waipio()
+
+

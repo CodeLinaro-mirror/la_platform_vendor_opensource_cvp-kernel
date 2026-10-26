@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/debugfs.h>
@@ -43,9 +44,68 @@
 
 static struct msm_cvp_common_data default_common_data[] = {
 	{
-		.key = "qcom,never-unload-fw",
+		.key = "qcom,auto-pil",
 		.value = 1,
 	},
+};
+
+static struct msm_cvp_common_data sm8450_common_data[] = {
+	{
+		.key = "qcom,auto-pil",
+		.value = 1,
+	},
+	{
+		.key = "qcom,pm-qos-latency-us",
+		.value = 50,
+	},
+	{
+		.key = "qcom,sw-power-collapse",
+		.value = 1,
+	},
+	{
+		.key = "qcom,domain-attr-non-fatal-faults",
+		.value = 1,
+	},
+	{
+		.key = "qcom,max-secure-instances",
+		.value = 2,             /*
+					 * As per design driver allows 3rd
+					 * instance as well since the secure
+					 * flags were updated later for the
+					 * current instance. Hence total
+					 * secure sessions would be
+					 * max-secure-instances + 1.
+					 */
+	},
+	{
+		.key = "qcom,max-hw-load",
+		.value = 3916800,       /*
+					 * 1920x1088/256 MBs@480fps. It is less
+					 * any other usecases (ex:
+					 * 3840x2160@120fps, 4096x2160@96ps,
+					 * 7680x4320@30fps)
+					 */
+	},
+	{
+		.key = "qcom,power-collapse-delay",
+		.value = 3000,
+	},
+	{
+		.key = "qcom,hw-resp-timeout",
+		.value = 2000,
+	},
+	{
+		.key = "qcom,dsp-resp-timeout",
+		.value = 1000,
+	},
+	{
+		.key = "qcom,debug-timeout",
+		.value = 0,
+	},
+	{
+		.key = "qcom,dsp-enabled",
+		.value = 1,
+	}
 };
 
 static struct msm_cvp_common_data sm8250_common_data[] = {
@@ -173,6 +233,11 @@ static struct msm_cvp_ubwc_config_data shima_ubwc_data[] = {
 	UBWC_CONFIG(1, 1, 1, 0, 0, 0, 8, 32, 15, 0, 0),
 };
 
+/* Default UBWC config for LPDDR5 */
+static struct msm_cvp_ubwc_config_data fillmore_ubwc_data[] = {
+	UBWC_CONFIG(1, 1, 1, 0, 0, 0, 8, 32, 15, 0, 0),
+};
+
 static struct msm_cvp_platform_data default_data = {
 	.common_data = default_common_data,
 	.common_data_length =  ARRAY_SIZE(default_common_data),
@@ -188,7 +253,13 @@ static struct msm_cvp_platform_data sm8250_data = {
 	.vpu_ver = VPU_VERSION_5,
 	.ubwc_config = kona_ubwc_data,
 };
-
+static struct msm_cvp_platform_data sm8450_data = {
+	.common_data = sm8450_common_data,
+	.common_data_length =  ARRAY_SIZE(sm8450_common_data),
+	.sku_version = 0,
+	.vpu_ver = VPU_VERSION_5,
+	.ubwc_config = kona_ubwc_data,
+};
 static struct msm_cvp_platform_data sm8350_data = {
 	.common_data = sm8350_common_data,
 	.common_data_length =  ARRAY_SIZE(sm8350_common_data),
@@ -205,6 +276,14 @@ static struct msm_cvp_platform_data shima_data = {
 	.ubwc_config = shima_ubwc_data,
 };
 
+static struct msm_cvp_platform_data fillmore_data = {
+    .common_data = sm8450_common_data,
+    .common_data_length =  ARRAY_SIZE(sm8450_common_data),
+    .sku_version = 0,
+    .vpu_ver = VPU_VERSION_5,
+    .ubwc_config = fillmore_ubwc_data,
+};
+
 static const struct of_device_id msm_cvp_dt_match[] = {
 	{
 		.compatible = "qcom,shima-cvp",
@@ -217,6 +296,14 @@ static const struct of_device_id msm_cvp_dt_match[] = {
 	{
 		.compatible = "qcom,kona-cvp",
 		.data = &sm8250_data,
+	},
+	{
+	     .compatible = "qcom,waipio-cvp",
+		.data = &sm8450_data,
+	},
+	{
+		.compatible = "qcom,fillmore-cvp",
+		.data = &fillmore_data,
 	},
 	{},
 };
@@ -267,6 +354,38 @@ void *cvp_get_drv_data(struct device *dev)
 		if (driver_data->ubwc_config &&
 			(ddr_type == DDR_TYPE_LPDDR4 ||
 			ddr_type == DDR_TYPE_LPDDR4X))
+			driver_data->ubwc_config->highest_bank_bit = 14;
+		dprintk(CVP_CORE, "DDR Type 0x%x hbb 0x%x\n",
+			ddr_type, driver_data->ubwc_config ?
+			driver_data->ubwc_config->highest_bank_bit : -1);
+	}
+	if (!strcmp(match->compatible, "qcom,waipio-cvp")) {
+		ddr_type = of_fdt_get_ddrtype();
+		if (ddr_type == -ENOENT) {
+			dprintk(CVP_ERR,
+				"Failed to get ddr type, use LPDDR5\n");
+		}
+
+		if (driver_data->ubwc_config &&
+			(ddr_type == DDR_TYPE_LPDDR4 ||
+			ddr_type == DDR_TYPE_LPDDR4X))
+			driver_data->ubwc_config->highest_bank_bit = 15;
+		dprintk(CVP_CORE, "DDR Type 0x%x hbb 0x%x\n",
+			ddr_type, driver_data->ubwc_config ?
+			driver_data->ubwc_config->highest_bank_bit : -1);
+	}
+	
+	if (!strcmp(match->compatible, "qcom,fillmore-cvp")) {
+		ddr_type = of_fdt_get_ddrtype();
+		if (ddr_type == -ENOENT) {
+			dprintk(CVP_ERR,
+				"Failed to get ddr type, use LPDDR5\n");
+		}
+
+		if (driver_data->ubwc_config &&
+			(ddr_type == DDR_TYPE_LPDDR4 ||
+			ddr_type == DDR_TYPE_LPDDR4X ||
+			ddr_type == DDR_TYPE_LPDDR4Y))
 			driver_data->ubwc_config->highest_bank_bit = 14;
 		dprintk(CVP_CORE, "DDR Type 0x%x hbb 0x%x\n",
 			ddr_type, driver_data->ubwc_config ?
