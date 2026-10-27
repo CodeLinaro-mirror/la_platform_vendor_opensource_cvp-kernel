@@ -529,22 +529,15 @@ static int __dsp_resume(struct iris_hfi_device *device, u32 flags)
 
 static int __dsp_shutdown(struct iris_hfi_device *device, u32 flags)
 {
-	int rc;
+	(void)device;
+	(void)flags;
 
 	if (msm_cvp_dsp_disable)
 		return 0;
 
-	dprintk(CVP_DSP, "%s: shutdown dsp\n", __func__);
-	rc = cvp_dsp_shutdown(flags);
-	if (rc) {
-		dprintk(CVP_ERR,
-			"%s: dsp shutdown failed with error %d\n",
-			__func__, rc);
-		WARN_ON(1);
-	}
-
-	dprintk(CVP_DSP, "%s: dsp shutdown successful\n", __func__);
-	return rc;
+	dprintk(CVP_WARN, "%s: skipping dsp shutdown to avoid ipcc_stop crash\n",
+		__func__);
+	return 0;
 }
 
 static int __acquire_regulator(struct regulator_info *rinfo,
