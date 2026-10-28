@@ -609,7 +609,7 @@ static long cvp_ioctl(struct msm_cvp_inst *inst,
 		return -EFAULT;
 	}
 
-	rc = msm_cvp_private((void *)inst, cmd, karg);
+	rc = msm_cvp_private21((void *)inst, cmd, karg);
 	if (rc) {
 		dprintk(CVP_ERR, "%s: failed cmd type %x %d\n",
 			__func__, karg->type, rc);

@@ -35,14 +35,14 @@ int msm_cvp_est_cycles(struct cvp_kmd_usecase_desc *cvp_desc,
 }
 EXPORT_SYMBOL(msm_cvp_est_cycles);
 
-int msm_cvp_poll(void *instance, struct file *filp,
+int msm_cvp_poll21(void *instance, struct file *filp,
 		struct poll_table_struct *wait)
 {
 	return 0;
 }
-EXPORT_SYMBOL(msm_cvp_poll);
+EXPORT_SYMBOL(msm_cvp_poll21);
 
-int msm_cvp_private(void *cvp_inst, unsigned int cmd,
+int msm_cvp_private21(void *cvp_inst, unsigned int cmd,
 		struct cvp_kmd_arg *arg)
 {
 	int rc = 0;
@@ -57,7 +57,7 @@ int msm_cvp_private(void *cvp_inst, unsigned int cmd,
 
 	return rc;
 }
-EXPORT_SYMBOL(msm_cvp_private);
+EXPORT_SYMBOL(msm_cvp_private21);
 
 static bool msm_cvp_check_for_inst_overload(struct msm_cvp_core *core)
 {
@@ -134,7 +134,7 @@ static void __deinit_session_queue(struct msm_cvp_inst *inst)
 	wake_up_all(&inst->session_queue.wq);
 }
 
-void *msm_cvp_open(int core_id, int session_type)
+void *msm_cvp_open21(int core_id, int session_type)
 {
 	struct msm_cvp_inst *inst = NULL;
 	struct msm_cvp_core *core = NULL;
@@ -250,7 +250,7 @@ fail_init:
 err_invalid_core:
 	return inst;
 }
-EXPORT_SYMBOL(msm_cvp_open);
+EXPORT_SYMBOL(msm_cvp_open21);
 
 static void msm_cvp_clean_sess_queue(struct msm_cvp_inst *inst,
 		struct cvp_session_queue *sq)
@@ -387,7 +387,7 @@ static void close_helper(struct kref *kref)
 	msm_cvp_destroy(inst);
 }
 
-int msm_cvp_close(void *instance)
+int msm_cvp_close21(void *instance)
 {
 	struct msm_cvp_inst *inst = instance;
 	int rc = 0;
@@ -414,10 +414,10 @@ int msm_cvp_close(void *instance)
 	kref_put(&inst->kref, close_helper);
 	return 0;
 }
-EXPORT_SYMBOL(msm_cvp_close);
+EXPORT_SYMBOL(msm_cvp_close21);
 
-int msm_cvp_suspend(int core_id)
+int msm_cvp_suspend21(int core_id)
 {
 	return msm_cvp_comm_suspend(core_id);
 }
-EXPORT_SYMBOL(msm_cvp_suspend);
+EXPORT_SYMBOL(msm_cvp_suspend21);

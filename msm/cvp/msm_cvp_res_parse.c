@@ -311,7 +311,7 @@ err_load_subcache_table_fail:
 }
 
 /**
- * msm_cvp_load_u32_table() - load dtsi table entries
+ * msm_cvp_load_u32_table21() - load dtsi table entries
  * @pdev: A pointer to the platform device.
  * @of_node:      A pointer to the device node.
  * @table_name:   A pointer to the dtsi table entry name.
@@ -327,7 +327,7 @@ err_load_subcache_table_fail:
  *
  * Return:        Return '0' for success else appropriate error value.
  */
-int msm_cvp_load_u32_table(struct platform_device *pdev,
+int msm_cvp_load_u32_table21(struct platform_device *pdev,
 		struct device_node *of_node, char *table_name, int struct_size,
 		u32 **table, u32 *num_elements)
 {
@@ -364,7 +364,7 @@ int msm_cvp_load_u32_table(struct platform_device *pdev,
 
 	return rc;
 }
-EXPORT_SYMBOL(msm_cvp_load_u32_table);
+EXPORT_SYMBOL(msm_cvp_load_u32_table21);
 
 /* A comparator to compare loads (needed later on) */
 static int cmp(const void *a, const void *b)
@@ -385,7 +385,7 @@ static int msm_cvp_load_allowed_clocks_table(
 		return 0;
 	}
 
-	rc = msm_cvp_load_u32_table(pdev, pdev->dev.of_node,
+	rc = msm_cvp_load_u32_table21(pdev, pdev->dev.of_node,
 				"qcom,allowed-clock-rates",
 				sizeof(*res->allowed_clks_tbl),
 				(u32 **)&res->allowed_clks_tbl,

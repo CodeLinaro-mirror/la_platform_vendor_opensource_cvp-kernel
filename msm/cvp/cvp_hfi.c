@@ -649,7 +649,7 @@ static int __write_queue(struct cvp_iface_q_info *qinfo, u8 *packet,
 		return -ENOENT;
 	}
 
-	if (msm_cvp_debug & CVP_PKT) {
+	if (msm_cvp_debug21 & CVP_PKT) {
 		dprintk(CVP_PKT, "%s: %pK\n", __func__, qinfo);
 		__dump_packet(packet, CVP_PKT);
 	}
@@ -845,7 +845,7 @@ static int __read_queue(struct cvp_iface_q_info *qinfo, u8 *packet,
 
 	spin_unlock(&qinfo->hfi_lock);
 
-	if ((msm_cvp_debug & CVP_PKT) &&
+	if ((msm_cvp_debug21 & CVP_PKT) &&
 		!(queue->qhdr_type & HFI_Q_ID_CTRL_TO_HOST_DEBUG_Q)) {
 		dprintk(CVP_PKT, "%s: %pK\n", __func__, qinfo);
 		__dump_packet(packet, CVP_PKT);
