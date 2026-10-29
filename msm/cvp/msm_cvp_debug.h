@@ -12,7 +12,7 @@
 
 
 #ifndef CVP_DBG_LABEL
-#define CVP_DBG_LABEL "msm_cvp"
+#define CVP_DBG_LABEL "msm_cvp21"
 #endif
 
 #define CVP_DBG_TAG CVP_DBG_LABEL ": %4s: "
@@ -53,8 +53,8 @@ enum msm_cvp_debugfs_event {
 	MSM_CVP_DEBUGFS_EVENT_FBD,
 };
 
-extern int msm_cvp_debug;
-extern int msm_cvp_debug_out;
+extern int msm_cvp_debug21;
+extern int msm_cvp_debug_out21;
 extern int msm_cvp_fw_debug;
 extern int msm_cvp_fw_debug_mode;
 extern int msm_cvp_fw_low_power_mode;
@@ -68,8 +68,8 @@ extern bool msm_cvp_dcvs_disable;
 
 #define dprintk(__level, __fmt, arg...)	\
 	do { \
-		if (msm_cvp_debug & __level) { \
-			if (msm_cvp_debug_out == CVP_OUT_PRINTK) { \
+		if (msm_cvp_debug21 & __level) { \
+			if (msm_cvp_debug_out21 == CVP_OUT_PRINTK) { \
 				pr_info(CVP_DBG_TAG __fmt, \
 					get_debug_level_str(__level),	\
 					## arg); \
@@ -135,7 +135,7 @@ static inline void show_stats(struct msm_cvp_inst *i)
 
 	for (x = 0; x < MAX_PROFILING_POINTS; x++) {
 		if (i->debug.pdata[x].name[0] &&
-				(msm_cvp_debug & CVP_PROF)) {
+				(msm_cvp_debug21 & CVP_PROF)) {
 			if (i->debug.samples) {
 				dprintk(CVP_PROF, "%s averaged %d ms/sample\n",
 						i->debug.pdata[x].name,

@@ -40,7 +40,7 @@ static int cvp_open(struct inode *inode, struct file *filp)
 
 	dprintk(CVP_SESS, "%s: Enter\n", __func__);
 
-	inst = msm_cvp_open(core->id, MSM_CVP_USER);
+	inst = msm_cvp_open21(core->id, MSM_CVP_USER);
 	if (!inst) {
 		dprintk(CVP_ERR, "Failed to create cvp instance\n");
 		return -ENOMEM;
@@ -54,7 +54,7 @@ static int cvp_close(struct inode *inode, struct file *filp)
 	int rc = 0;
 	struct msm_cvp_inst *inst = filp->private_data;
 
-	rc = msm_cvp_close(inst);
+	rc = msm_cvp_close21(inst);
 	filp->private_data = NULL;
 	return rc;
 }
@@ -263,13 +263,13 @@ static ssize_t boot_store(struct device *dev,
 	if (val > 0 && booted == 0) {
 		struct msm_cvp_inst *inst;
 
-		inst = msm_cvp_open(MSM_CORE_CVP, MSM_CVP_BOOT);
+		inst = msm_cvp_open21(MSM_CORE_CVP, MSM_CVP_BOOT);
 		if (!inst) {
 			dprintk(CVP_ERR,
 			"Failed to create cvp instance\n");
 			return -ENOMEM;
 		}
-		rc = msm_cvp_close(inst);
+		rc = msm_cvp_close21(inst);
 		if (rc) {
 			dprintk(CVP_ERR,
 			"Failed to close cvp instance\n");
@@ -296,10 +296,10 @@ static struct attribute_group msm_cvp_core_attr_group = {
 };
 
 static const struct of_device_id msm_cvp_plat_match[] = {
-	{.compatible = "qcom,msm-cvp"},
-	{.compatible = "qcom,msm-cvp,context-bank"},
-	{.compatible = "qcom,msm-cvp,bus"},
-	{.compatible = "qcom,msm-cvp,mem-cdsp"},
+	{.compatible = "qcom,msm-cvp21"},
+	{.compatible = "qcom,msm-cvp21,context-bank"},
+	{.compatible = "qcom,msm-cvp21,bus"},
+	{.compatible = "qcom,msm-cvp21,mem-cdsp"},
 	{}
 };
 
@@ -407,7 +407,7 @@ static int msm_probe_cvp_device(struct platform_device *pdev)
 
 	dprintk(CVP_CORE, "populating sub devices\n");
 	/*
-	 * Trigger probe for each sub-device i.e. qcom,msm-cvp,context-bank.
+	 * Trigger probe for each sub-device i.e. qcom,msm-cvp21,context-bank.
 	 * When msm_cvp_probe is called for each sub-device, parse the
 	 * context-bank details and store it in core->resources.context_banks
 	 * list.
@@ -467,16 +467,16 @@ static int msm_cvp_probe(struct platform_device *pdev)
 	 * the end of the probe function after msm-cvp device probe is
 	 * completed. Return immediately after completing sub-device probe.
 	 */
-	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-cvp")) {
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-cvp21")) {
 		return msm_probe_cvp_device(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
-		"qcom,msm-cvp,bus")) {
+		"qcom,msm-cvp21,bus")) {
 		return msm_cvp_probe_bus(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
-		"qcom,msm-cvp,context-bank")) {
+		"qcom,msm-cvp21,context-bank")) {
 		return msm_cvp_probe_context_bank(pdev);
 	} else if (of_device_is_compatible(pdev->dev.of_node,
-		"qcom,msm-cvp,mem-cdsp")) {
+		"qcom,msm-cvp21,mem-cdsp")) {
 		return msm_cvp_probe_mem_cdsp(pdev);
 	}
 
@@ -494,7 +494,7 @@ static void  msm_cvp_remove(struct platform_device *pdev)
                   return;
 	}
 
-	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-cvp"))
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,msm-cvp21"))
 		core = dev_get_drvdata(&pdev->dev);
 	else
 		core = dev_get_drvdata(pdev->dev.parent);
@@ -527,7 +527,7 @@ static int msm_cvp_pm_suspend(struct device *dev)
 	 *   subdevices (e.g. context banks)
 	 */
 	if (!dev || !dev->driver ||
-		!of_device_is_compatible(dev->of_node, "qcom,msm-cvp"))
+		!of_device_is_compatible(dev->of_node, "qcom,msm-cvp21"))
 		return 0;
 
 	core = dev_get_drvdata(dev);
@@ -536,7 +536,7 @@ static int msm_cvp_pm_suspend(struct device *dev)
 		return -EINVAL;
 	}
 
-	rc = msm_cvp_suspend(core->id);
+	rc = msm_cvp_suspend21(core->id);
 	if (rc == -ENOTSUPP)
 		rc = 0;
 	else if (rc)
@@ -562,7 +562,7 @@ static struct platform_driver msm_cvp_driver = {
 	.probe = msm_cvp_probe,
 	.remove = msm_cvp_remove,
 	.driver = {
-		.name = "msm_cvp",
+		.name = "msm_cvp21",
 		.of_match_table = msm_cvp_plat_match,
 		.pm = &msm_cvp_pm_ops,
 	},

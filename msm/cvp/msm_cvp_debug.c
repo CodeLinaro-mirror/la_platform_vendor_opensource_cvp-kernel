@@ -11,11 +11,11 @@
 
 #define CREATE_TRACE_POINTS
 #define MAX_SSR_STRING_LEN 10
-int msm_cvp_debug = CVP_ERR | CVP_WARN | CVP_FW;
-EXPORT_SYMBOL(msm_cvp_debug);
+int msm_cvp_debug21 = CVP_ERR | CVP_WARN | CVP_FW;
+EXPORT_SYMBOL(msm_cvp_debug21);
 
-int msm_cvp_debug_out = CVP_OUT_PRINTK;
-EXPORT_SYMBOL(msm_cvp_debug_out);
+int msm_cvp_debug_out21 = CVP_OUT_PRINTK;
+EXPORT_SYMBOL(msm_cvp_debug_out21);
 
 int msm_cvp_fw_debug = 0x18;
 int msm_cvp_fw_debug_mode = 1;
@@ -255,13 +255,13 @@ struct dentry *msm_cvp_debugfs_init_drv(void)
 
 
 
-    __debugfs_create_void(x32, "debug_level", &msm_cvp_debug);
+    __debugfs_create_void(x32, "debug_level", &msm_cvp_debug21);
     __debugfs_create_void(x32, "fw_level", &msm_cvp_fw_debug);
 
 __debugfs_create_void(u32, "fw_debug_mode", &msm_cvp_fw_debug_mode);
 __debugfs_create_void(bool, "fw_coverage", &msm_cvp_fw_coverage);
 __debugfs_create_void(u32, "fw_low_power_mode", &msm_cvp_fw_low_power_mode);
-__debugfs_create_void(u32, "debug_output", &msm_cvp_debug_out);
+__debugfs_create_void(u32, "debug_output", &msm_cvp_debug_out21);
 __debugfs_create_void(bool, "disable_thermal_mitigation",
                       &msm_cvp_thermal_mitigation_disabled);
 __debugfs_create_void(bool, "disable_cacheop", &msm_cvp_cacheop_disabled);

@@ -45,7 +45,7 @@ struct cvp_kmd_usecase_desc {
 
 #if IS_ENABLED(CONFIG_MSM_CVP_V2) || IS_ENABLED(CONFIG_MSM_CVP)
 void *msm_cvp_open(int core_id, int session_type);
-int msm_cvp_close(void *instance);
+int msm_cvp_close21(void *instance);
 int msm_cvp_private(void *cvp_inst, unsigned int cmd, struct cvp_kmd_arg *arg);
 int msm_cvp_est_cycles(struct cvp_kmd_usecase_desc *cvp_desc,
 	struct cvp_kmd_request_power *cvp_voting);
@@ -55,7 +55,7 @@ int msm_cvp_est_cycles(struct cvp_kmd_usecase_desc *cvp_desc,
 {
 	return NULL;
 }*/
-/*static inline int msm_cvp_close(void *instance)
+/*static inline int msm_cvp_close21(void *instance)
 {
 	return -EINVAL;
 }*/

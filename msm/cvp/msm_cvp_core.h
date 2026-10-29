@@ -30,12 +30,12 @@ enum session_type {
 	MSM_CVP_MAX_DEVICES = MSM_CVP_UNKNOWN,
 };
 
-void *msm_cvp_open(int core_id, int session_type);
-int msm_cvp_close(void *instance);
-int msm_cvp_suspend(int core_id);
-int msm_cvp_poll(void *instance, struct file *filp,
+void *msm_cvp_open21(int core_id, int session_type);
+int msm_cvp_close21(void *instance);
+int msm_cvp_suspend21(int core_id);
+int msm_cvp_poll21(void *instance, struct file *filp,
 		struct poll_table_struct *pt);
-int msm_cvp_private(void *cvp_inst, unsigned int cmd,
+int msm_cvp_private21(void *cvp_inst, unsigned int cmd,
 		struct cvp_kmd_arg *arg);
 int msm_cvp_est_cycles(struct cvp_kmd_usecase_desc *cvp_desc,
 		struct cvp_kmd_request_power *cvp_voting);

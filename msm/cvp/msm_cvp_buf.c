@@ -30,7 +30,7 @@
 void print_smem(u32 tag, const char *str, struct msm_cvp_inst *inst,
 		struct msm_cvp_smem *smem)
 {
-	if (!(tag & msm_cvp_debug) || !inst || !smem)
+	if (!(tag & msm_cvp_debug21) || !inst || !smem)
 		return;
 
 	if (smem->dma_buf) {
@@ -45,7 +45,7 @@ void print_smem(u32 tag, const char *str, struct msm_cvp_inst *inst,
 static void print_internal_buffer(u32 tag, const char *str,
 		struct msm_cvp_inst *inst, struct cvp_internal_buf *cbuf)
 {
-	if (!(tag & msm_cvp_debug) || !inst || !cbuf)
+	if (!(tag & msm_cvp_debug21) || !inst || !cbuf)
 		return;
 
 	if (cbuf->smem->dma_buf) {
@@ -72,7 +72,7 @@ void print_cvp_buffer(u32 tag, const char *str, struct msm_cvp_inst *inst,
 void print_client_buffer(u32 tag, const char *str,
 		struct msm_cvp_inst *inst, struct cvp_kmd_buffer *cbuf)
 {
-	if (!(tag & msm_cvp_debug) || !inst || !cbuf)
+	if (!(tag & msm_cvp_debug21) || !inst || !cbuf)
 		return;
 
 	dprintk(tag,
