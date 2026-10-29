@@ -95,7 +95,6 @@ int cvp_create_pkt_cmd_sys_set_idle_indicator(
 		return -EINVAL;
 	}
 
-	/* 2 * sizeof(u32) is for pkt->rg_property_data[0] and pkt->rg_property_data[1] */
 	pkt->size = sizeof(struct cvp_hfi_cmd_sys_set_property_packet) + 2 * sizeof(u32);
 	pkt->packet_type = HFI_CMD_SYS_SET_PROPERTY;
 	pkt->num_properties = 1;
@@ -230,7 +229,7 @@ static int create_pkt_cmd_sys_ubwc_config(
 
 	if (!pkt)
 		return -EINVAL;
-	/* sizeof(u32) is for pkt->rg_property_data[0] */
+
 	pkt->size = sizeof(struct cvp_hfi_cmd_sys_set_property_packet) +
 		sizeof(struct cvp_hfi_cmd_sys_set_ubwc_config_packet_type)
 		+ sizeof(u32);
@@ -290,7 +289,7 @@ int cvp_create_pkt_cmd_sys_power_control(
 		dprintk(CVP_ERR, "No input packet\n");
 		return -EINVAL;
 	}
-	/* sizeof(u32) is for pkt->rg_property_data[0] */
+
 	pkt->size = sizeof(struct cvp_hfi_cmd_sys_set_property_packet) +
 		sizeof(struct cvp_hfi_enable) + sizeof(u32);
 	pkt->packet_type = HFI_CMD_SYS_SET_PROPERTY;
@@ -425,7 +424,6 @@ int cvp_create_pkt_cmd_sys_image_version(
 		dprintk(CVP_ERR, "%s invalid param :%pK\n", __func__, pkt);
 		return -EINVAL;
 	}
-	/* sizeof(u32) is for pkt->rg_property_data[0] */
 	pkt->size = sizeof(struct cvp_hfi_cmd_sys_get_property_packet) + sizeof(u32);
 	pkt->packet_type = HFI_CMD_SYS_GET_PROPERTY;
 	pkt->num_properties = 1;
