@@ -44,7 +44,7 @@
 
 static struct msm_cvp_common_data default_common_data[] = {
 	{
-		.key = "qcom,auto-pil",
+		.key = "qcom,never-unload-fw",
 		.value = 1,
 	},
 };

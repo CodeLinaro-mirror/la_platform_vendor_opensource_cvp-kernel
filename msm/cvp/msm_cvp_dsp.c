@@ -160,7 +160,7 @@ static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
 		dprintk(CVP_ERR, "glink edge 'label' not found in node\n");
 		return ret;
 	}
-	dprintk(CVP_INFO, "Manasa: %s: parent node=%s, edge label=%s\n",__func__, rpdev->dev.parent->of_node->name, edge_name);
+
 
 	if (strcmp(edge_name, "cdsp")) {
 		dprintk(CVP_ERR,
@@ -171,11 +171,10 @@ static int cvp_dsp_rpmsg_probe(struct rpmsg_device *rpdev)
 	mutex_lock(&me->lock);
 	me->chan = rpdev;
 	me->state = DSP_PROBED;
-	mutex_unlock(&me->lock);
 	complete(&me->completions[CPU2DSP_MAX_CMD]);
-	
+	mutex_unlock(&me->lock);
 
-	return ret;
+	return 0;
 }
 
 static void cvp_dsp_rpmsg_remove(struct rpmsg_device *rpdev)
@@ -874,7 +873,12 @@ int cvp_dsp_device_init(void)
 		goto register_bail;
 	}
 	snprintf(tname, sizeof(tname), "cvp-dsp-thread");
-	me->state = DSP_UNINIT;
+
+	mutex_lock(&me->lock);
+  	if (me->state == DSP_INVALID)
+  		me->state = DSP_UNINIT;
+  	mutex_unlock(&me->lock);
+
 	me->dsp_thread = kthread_run(cvp_dsp_thread, me, tname);
 	if (!me->dsp_thread) {
 		dprintk(CVP_ERR, "%s create %s fail", __func__, tname);
